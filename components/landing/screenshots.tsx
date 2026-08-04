@@ -1,7 +1,7 @@
 import { getLanding } from '@/lib/landing-content';
 
-// Изображения лежат в public/screenshots. Сейчас там заглушки — замените файлы
-// 1.png…4.png реальными скриншотами бота, менять код при этом не нужно.
+// Images live in public/screenshots and are placeholders for now: replace 1.png…4.png
+// with real bot screenshots, no code changes needed.
 const shots = ['1', '2', '3', '4'];
 
 export function Screenshots({ lang }: { lang: string }) {

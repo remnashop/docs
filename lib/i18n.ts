@@ -7,7 +7,7 @@ export const i18n = defineI18n({
   parser: 'dot',
 });
 
-/** Дефолтная локаль отдаётся без префикса, остальные — с ним. */
+/** The default locale is served without a prefix, every other locale keeps one. */
 export function withLocale(lang: string, path: string) {
   return lang === i18n.defaultLanguage ? path : `/${lang}${path}`;
 }

@@ -17,7 +17,6 @@ const docs = defineDocs({
   },
 });
 
-// See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
   baseUrl: docsRoute,
   i18n,
@@ -25,8 +24,7 @@ export const source = loader({
   plugins: [],
 });
 
-// Дефолтная локаль отдаётся без префикса (hideLocale: 'default-locale'),
-// поэтому её не должно быть и в служебных URL.
+// Keep the default locale out of generated URLs, matching hideLocale: 'default-locale'.
 function localePrefix(locale: string | undefined) {
   return locale && locale !== i18n.defaultLanguage ? locale : undefined;
 }

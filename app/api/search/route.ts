@@ -1,8 +1,8 @@
 import { source } from '@/lib/source';
 import { createFromSource } from 'fumadocs-core/search/server';
 
-// Индекс собирается на этапе сборки и отдаётся статикой; локали берутся из i18n-конфига
-// загрузчика, отдельный language не нужен — токенизатор по умолчанию мультиязычный.
+// Locales come from the loader's i18n config; the default tokenizer is multilingual,
+// so no explicit `language` option is needed.
 export const revalidate = false;
 
 export const { staticGET: GET } = createFromSource(source);

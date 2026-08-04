@@ -1,6 +1,6 @@
-// При output: 'export' middleware Next.js не выполняется, поэтому Fumadocs не может
-// убрать префикс дефолтной локали на лету: ссылки ведут на /docs/..., а файлы лежат
-// в out/ru/docs/... Этот скрипт поднимает содержимое дефолтной локали в корень out/.
+// With output: 'export' Next.js middleware never runs, so Fumadocs cannot strip the
+// default locale prefix at request time: links point at /docs/... while the files are
+// emitted to out/ru/docs/... This script lifts the default locale up to the out/ root.
 import { cp, rm, access, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
@@ -11,7 +11,7 @@ const localeDir = join(out, defaultLocale);
 try {
   await access(localeDir);
 } catch {
-  console.error(`flatten-default-locale: каталог out/${defaultLocale} не найден, сборка неполная`);
+  console.error(`flatten-default-locale: out/${defaultLocale} is missing, the build is incomplete`);
   process.exit(1);
 }
 
@@ -19,6 +19,4 @@ const moved = await readdir(localeDir);
 await cp(localeDir, out, { recursive: true });
 await rm(localeDir, { recursive: true, force: true });
 
-console.log(
-  `flatten-default-locale: out/${defaultLocale} поднят в корень (${moved.length} записей)`,
-);
+console.log(`flatten-default-locale: moved out/${defaultLocale} to the root (${moved.length} entries)`);

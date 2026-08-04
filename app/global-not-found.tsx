@@ -1,5 +1,5 @@
-// GitHub Pages отдаёт /404.html при любом промахе, поэтому страница должна быть
-// самостоятельной: своя разметка html/body, вне сегмента [lang].
+// GitHub Pages serves /404.html for every miss, so this page lives outside the
+// [lang] segment and has to render its own html/body.
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import type { Metadata } from 'next';
