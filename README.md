@@ -1,47 +1,62 @@
-# fuma-scaffold
+# remnashop docs
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+Лендинг и документация проекта [remnashop](https://github.com/snoups/remnashop) на
+[Fumadocs](https://fumadocs.dev).
 
-It is a Next.js app with [Static Export](https://nextjs.org/docs/app/guides/static-exports) configured.
+Сайт: <https://remnashop.dev>
 
-Run development server:
+## Локальная разработка
 
 ```bash
+npm install
 npm run dev
-# or
-pnpm dev
-# or
-yarn dev
 ```
 
-Open http://localhost:3000 with your browser to see the result.
+## Сборка
 
-## Explore
+```bash
+npm run build
+npx serve out
+```
 
-In the project, you can see:
+`npm run build` собирает статический сайт в `out/`, после чего переносит содержимое `out/ru`
+в корень. Это нужно потому, что при `output: 'export'` middleware Next.js не выполняется и
+Fumadocs не может убрать префикс дефолтной локали на лету. В результате:
 
-- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
-- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
+| Адрес | Что открывается |
+| --- | --- |
+| `/` | лендинг, русский |
+| `/docs/...` | документация, русский |
+| `/en/` | лендинг, английский |
+| `/en/docs/...` | документация, английский |
 
-| Route                     | Description                                            |
-| ------------------------- | ------------------------------------------------------ |
-| `app/(home)`              | The route group for your landing page and other pages. |
-| `app/docs`                | The documentation layout and pages.                    |
-| `app/api/search/route.ts` | The Route Handler for search.                          |
+## Структура контента
 
-### Fumadocs MDX
+Страницы лежат в `content/docs`. Русская версия — файл без суффикса (`docker.mdx`),
+английская — с суффиксом локали (`docker.en.mdx`). Порядок и заголовки разделов задаются
+в `meta.json` и `meta.en.json`.
 
-Collections are defined with the [Macro API](https://fumadocs.dev/docs/mdx/macro) in `lib/source.ts`.
+Переводы интерфейса (не контента) — в `lib/translations.ts`.
 
-Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
+## Скриншоты на лендинге
 
-## Learn More
+В `public/screenshots` лежат четыре заглушки `1.png`…`4.png`. Замените файлы реальными
+скриншотами бота — код менять не нужно.
 
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
+## Деплой
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.dev) - learn about Fumadocs
+Пуш в `main` запускает workflow `deploy`: сборка и публикация в GitHub Pages.
+
+Разовые ручные настройки:
+
+1. **Settings → Pages → Source:** GitHub Actions.
+2. **DNS для `remnashop.dev`** — A-записи apex-домена на GitHub Pages:
+   `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`;
+   AAAA-записи: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`,
+   `2606:50c0:8003::153`.
+3. **`docs.remnashop.dev`** — редирект на `https://remnashop.dev/docs`. GitHub Pages отдаёт
+   один кастомный домен на репозиторий, поэтому редирект настраивается у DNS-провайдера
+   (у Cloudflare — Redirect Rule с кодом 301).
+
+Домен зафиксирован в `public/CNAME`; менять его нужно там, иначе очередной деплой затрёт
+настройку, сделанную в интерфейсе GitHub.
