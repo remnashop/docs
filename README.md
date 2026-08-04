@@ -1,62 +1,49 @@
 # remnashop docs
 
-Лендинг и документация проекта [remnashop](https://github.com/snoups/remnashop) на
+Landing page and documentation for [remnashop](https://github.com/snoups/remnashop), built with
 [Fumadocs](https://fumadocs.dev).
 
-Сайт: <https://remnashop.dev>
+Site: <https://remnashop.dev>
 
-## Локальная разработка
+## Local development
 
 ```bash
 npm install
 npm run dev
 ```
 
-## Сборка
+## Build
 
 ```bash
 npm run build
 npx serve out
 ```
 
-`npm run build` собирает статический сайт в `out/`, после чего переносит содержимое `out/ru`
-в корень. Это нужно потому, что при `output: 'export'` middleware Next.js не выполняется и
-Fumadocs не может убрать префикс дефолтной локали на лету. В результате:
+`npm run build` exports the static site into `out/` and then lifts the contents of `out/ru` up to
+the root. This is needed because Next.js middleware never runs with `output: 'export'`, so Fumadocs
+cannot strip the default locale prefix at request time. The result:
 
-| Адрес | Что открывается |
+| URL | Content |
 | --- | --- |
-| `/` | лендинг, русский |
-| `/docs/...` | документация, русский |
-| `/en/` | лендинг, английский |
-| `/en/docs/...` | документация, английский |
+| `/` | landing page, Russian |
+| `/docs/...` | documentation, Russian |
+| `/en/` | landing page, English |
+| `/en/docs/...` | documentation, English |
 
-## Структура контента
+## Content structure
 
-Страницы лежат в `content/docs`. Русская версия — файл без суффикса (`docker.mdx`),
-английская — с суффиксом локали (`docker.en.mdx`). Порядок и заголовки разделов задаются
-в `meta.json` и `meta.en.json`.
+Pages live in `content/docs`. The Russian version is the file without a suffix (`docker.mdx`), the
+English one carries a locale suffix (`docker.en.mdx`). Section order and titles come from
+`meta.json` and `meta.en.json`.
 
-Переводы интерфейса (не контента) — в `lib/translations.ts`.
+Interface translations (not content) live in `lib/translations.ts`.
 
-## Скриншоты на лендинге
+## Landing page screenshots
 
-В `public/screenshots` лежат четыре заглушки `1.png`…`4.png`. Замените файлы реальными
-скриншотами бота — код менять не нужно.
+`public/screenshots` holds four placeholders, `1.png` through `4.png`. Replace them with real bot
+screenshots — no code changes required.
 
-## Деплой
+## Deployment
 
-Пуш в `main` запускает workflow `deploy`: сборка и публикация в GitHub Pages.
-
-Разовые ручные настройки:
-
-1. **Settings → Pages → Source:** GitHub Actions.
-2. **DNS для `remnashop.dev`** — A-записи apex-домена на GitHub Pages:
-   `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`;
-   AAAA-записи: `2606:50c0:8000::153`, `2606:50c0:8001::153`, `2606:50c0:8002::153`,
-   `2606:50c0:8003::153`.
-3. **`docs.remnashop.dev`** — редирект на `https://remnashop.dev/docs`. GitHub Pages отдаёт
-   один кастомный домен на репозиторий, поэтому редирект настраивается у DNS-провайдера
-   (у Cloudflare — Redirect Rule с кодом 301).
-
-Домен зафиксирован в `public/CNAME`; менять его нужно там, иначе очередной деплой затрёт
-настройку, сделанную в интерфейсе GitHub.
+Pushing to `main` triggers the `deploy` workflow: it builds the site and publishes it to GitHub
+Pages. The custom domain is pinned in `public/CNAME`.
