@@ -11,6 +11,14 @@
 /build
 *.tsbuildinfo
 
+# local planning notes, not part of the site
+/docs
+/.superpowers
+
+# editors
+.idea
+.vscode
+
 # misc
 .DS_Store
 *.pem
