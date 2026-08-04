@@ -1,5 +1,6 @@
 import { loader } from 'fumadocs-core/source';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
+import { i18n } from './i18n';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
 
@@ -19,16 +20,27 @@ const docs = defineDocs({
 // See https://fumadocs.dev/docs/headless/source-api for more info
 export const source = loader({
   baseUrl: docsRoute,
+  i18n,
   source: docs.toFumadocsSource(),
   plugins: [],
 });
+
+// Дефолтная локаль отдаётся без префикса (hideLocale: 'default-locale'),
+// поэтому её не должно быть и в служебных URL.
+function localePrefix(locale: string | undefined) {
+  return locale && locale !== i18n.defaultLanguage ? locale : undefined;
+}
 
 export function getPageImageUrl(page: (typeof source)['$inferPage']) {
   const segments = [...page.slugs, 'image.png'];
 
   return {
     segments,
-    url: '/' + [page.locale, ...docsImageRoute.split('/'), ...segments].filter(Boolean).join('/'),
+    url:
+      '/' +
+      [localePrefix(page.locale), ...docsImageRoute.split('/'), ...segments]
+        .filter(Boolean)
+        .join('/'),
   };
 }
 
@@ -37,7 +49,11 @@ export function getPageMarkdownUrl(page: (typeof source)['$inferPage']) {
 
   return {
     segments,
-    url: '/' + [page.locale, ...docsContentRoute.split('/'), ...segments].filter(Boolean).join('/'),
+    url:
+      '/' +
+      [localePrefix(page.locale), ...docsContentRoute.split('/'), ...segments]
+        .filter(Boolean)
+        .join('/'),
   };
 }
 

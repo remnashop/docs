@@ -1,0 +1,45 @@
+import { defineI18nUI } from 'fumadocs-ui/i18n';
+import { i18n } from './i18n';
+
+export const { provider } = defineI18nUI(i18n, {
+  ru: {
+    displayName: 'Русский',
+    'Search(search dialog)': 'Поиск',
+    'Search(search trigger)': 'Поиск',
+    'Open Search(search trigger)(aria-label)': 'Открыть поиск',
+    'Close Search(search dialog)(aria-label)': 'Закрыть поиск',
+    'No results found(search dialog)': 'Ничего не найдено',
+    'On this page(table of contents)': 'На этой странице',
+    'No Headings(table of contents)': 'Заголовков нет',
+    'Table of Contents(inline table of contents)': 'Содержание',
+    'Next Page(pagination)': 'Далее',
+    'Previous Page(pagination)': 'Назад',
+    'Last updated on(page footer)': 'Обновлено',
+    'Edit on GitHub(edit page)': 'Редактировать на GitHub',
+    'Choose a language(language switcher)': 'Выбрать язык',
+    'Choose a language(language switcher)(aria-label)': 'Выбрать язык',
+    'Toggle Theme(theme switcher)(aria-label)': 'Переключить тему',
+    'Light(theme switcher)(aria-label)': 'Светлая',
+    'Dark(theme switcher)(aria-label)': 'Тёмная',
+    'System(theme switcher)(aria-label)': 'Системная',
+    'Show Sidebar(sidebar)': 'Показать меню',
+    'Hide Sidebar(sidebar)': 'Скрыть меню',
+    'Open Sidebar(sidebar)(aria-label)': 'Открыть меню',
+    'Close Sidebar(sidebar)(aria-label)': 'Закрыть меню',
+    'Collapse Sidebar(sidebar)(aria-label)': 'Свернуть меню',
+    'Toggle Menu(home layout header)(aria-label)': 'Меню',
+    'Copy Text(code block)(aria-label)': 'Скопировать',
+    'Copied Text(code block)(aria-label)': 'Скопировано',
+    'Copy Markdown(page actions)': 'Скопировать Markdown',
+    'View as Markdown(page actions)': 'Открыть как Markdown',
+    'Open(page actions)': 'Открыть',
+    'Open in GitHub(page actions)': 'Открыть на GitHub',
+    'Page Not Found(404 not found page)': 'Страница не найдена',
+    'Back to Home(404 not found page)': 'На главную',
+    'The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.(404 not found page)':
+      'Страница могла быть удалена, переименована или временно недоступна.',
+  },
+  en: {
+    displayName: 'English',
+  },
+});
