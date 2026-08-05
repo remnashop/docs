@@ -3,6 +3,159 @@ title: Introduction
 description: What Remnashop is and how it works
 ---
 
-Remnashop is a platform for selling VPN subscriptions, built on top of [Remnawave](https://github.com/remnawave).
+Remnashop is a platform for selling VPN subscriptions, integrated with
+[Remnawave](https://github.com/remnawave). Both customers and administrators work with it through
+a Telegram bot and a web cabinet.
 
-This page will describe the architecture, the services involved and how the bot, the web cabinet and the panel fit together.
+<Callout type="warn">Some features are still under development and testing.</Callout>
+
+## Features
+
+<Accordions>
+
+<Accordion title="📦 Plans">
+- Plan configurator directly in the bot interface.
+- Unique architecture for flexible plan creation and precise availability control.
+- Support for any limits — by traffic, devices, both, or unlimited.
+- Availability control for specific users or user types.
+- Link internal and external squads to specific plans.
+- Support for any subscription duration.
+- Ability to make a plan free of charge.
+- Multi-currency pricing for each duration.
+- Customizable plan display order.
+- Plan import and export.
+</Accordion>
+
+<Accordion title="🎟️ Promocodes">
+- Multiple reward types: extra days, traffic, subscription activation for a chosen plan, personal discount, or discount for the next purchase.
+- Configurable lifetime: by time or number of activations.
+- Convenient promocode configurator.
+- Detailed statistics for promocodes and their activations.
+</Accordion>
+
+<Accordion title="📢 Broadcasts">
+- View all previously sent messages with content preview.
+- Send by user category: all users, by plan, with subscription, without subscription, expired, or trial.
+- Supports photos, videos, GIFs, and stickers.
+- Supports HTML tags for message formatting.
+- Preview messages before sending.
+- Option to stop an active broadcast.
+- Option to delete sent messages.
+</Accordion>
+
+<Accordion title="🔔 Notifications and events">
+- Configurable notification system directly in the bot interface.
+- User notifications: subscription expiring, expired, traffic exhausted, etc.
+- System notifications: bot lifecycle, bot update, new user registration, subscription activation, promocode activation, node status, first user connection, device add and remove events, etc.
+- Ability to send notifications to chat topics for sorting.
+</Accordion>
+
+<Accordion title="🧪 Trial period">
+- Configurable trial setup through the plan configurator.
+- Supports any limits.
+- Supports multiple trial plans.
+- Separate internal and external squad assignments.
+- Availability settings for users who joined via ad or referral links.
+- Support for a paid trial period.
+- Auto-disabling of the trial subscription when leaving the channel or group.
+</Accordion>
+
+<Accordion title="👥 Referral system">
+- Detailed referral statistics.
+- Referral system configurator.
+- Reward customization: points or extra days.
+- Two-level referral support.
+</Accordion>
+
+<Accordion title="💳 Payment systems">
+- Supports multiple payment gateways: Telegram Stars, YooKassa, YooMoney, Cryptomus, Heleket, CryptoPay (CryptoBot), FreeKassa, MulenPay, PayMaster, Platega, RoboKassa, UrlPay, WATA, Valutix.
+- Payment gateway configurator.
+- Default currency setup.
+- Ability to run test payments.
+- Customizable display order for payment methods.
+</Accordion>
+
+<Accordion title="📱 Device management">
+- Allows users to manage their connected devices (only with active subscriptions and within device limits).
+- Configurable cooldown for device reset actions.
+- Ability to reset the subscription link.
+</Accordion>
+
+<Accordion title="🏷️ Discount system">
+- Two discount types: personal and next purchase.
+- Discounts do not stack — the largest discount is applied.
+- Discount display on purchase buttons.
+</Accordion>
+
+<Accordion title="🔐 Access mode">
+- Five access modes: full restriction, open for all, invite-only, purchase restricted, and register restricted.
+- Automatic notifications for users who attempted to purchase during restricted mode.
+- Conditional access support: rule acceptance and channel subscription.
+</Accordion>
+
+<Accordion title="⛔ Blacklist">
+- Block users by Telegram ID.
+- Bulk blocking via a list.
+- Support for auto-updated external block lists.
+- Notification for registration attempts by blacklisted users.
+</Accordion>
+
+<Accordion title="📈 Ad links">
+- Create links to track traffic sources and user acquisition.
+- Built-in link configurator.
+- View detailed analytics for each link.
+</Accordion>
+
+<Accordion title="📊 Statistics">
+- Detailed analytics by category: users, transactions, subscriptions (plans), promocodes, referrals.
+</Accordion>
+
+<Accordion title="👤 User editor">
+- Complete user information: profile data, stats, subscription, transactions.
+- Edit discounts.
+- Manage roles: developer, admin, user.
+- Block users.
+- Grant plan access for purchase.
+- Full subscription editor: modify limits, reset traffic, manage devices, squads, expiration date, toggle subscription status, delete, or get connection link.
+- View all banned users.
+- Search by name, username, and ID.
+- Lists of recently registered and active users.
+- Quick access via forwarded messages and system notifications.
+</Accordion>
+
+<Accordion title="🔄 User synchronization">
+- Automatic synchronization with the panel.
+- Edit user data both from the bot and the panel.
+- Import users from the 3X-UI panel.
+- Seamless migration from other bots.
+</Accordion>
+
+<Accordion title="💾 Backups">
+- Backups of the database and assets.
+- Automatic backup scheduler.
+- Notifications about backup results.
+- Manage backups directly in the dashboard.
+</Accordion>
+
+<Accordion title="🎛 Main menu editor">
+- Add and modify additional buttons in the main menu.
+- Button types: link, copy text, Web App, and text message.
+- Button color setting.
+- Visibility control: by role and a "subscribers only" flag.
+- Support for media and custom emoji in buttons.
+</Accordion>
+
+<Accordion title="🌐 Internationalization">
+- Ability to set unique banners for each locale and specific dialogs.
+- Support for interface translations into multiple languages.
+- Two-layer translation system: user translations (`custom.ftl`) take priority over the built-in ones and persist across updates.
+- Support for custom emoji in buttons and messages.
+- Ability to translate plan names and descriptions.
+- Automatic language detection on first registration and after subsequent changes.
+</Accordion>
+
+<Accordion title="🪄 MiniApp">
+- Integration with the subscription page via Telegram MiniApp.
+</Accordion>
+
+</Accordions>

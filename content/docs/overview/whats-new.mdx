@@ -1,8 +1,323 @@
 ---
 title: What's new
-description: Changes in recent releases
+description: Remnashop release history
 ---
 
-Release notes will live here: what was added, what changed and what to watch out for when updating.
+The full list of releases is also available on [GitHub](https://github.com/snoups/remnashop/releases).
 
-For now the current list is on [GitHub](https://github.com/snoups/remnashop/releases).
+## 0.8.2 (June 23, 2026)
+
+**New:**
+
+* Improved the **promocode activation deeplink** (`promo` / `promo_<code>`): following the link opens activation with the code prefilled
+* Added **promocode code validation**: only `A-Za-z0-9_-` characters are allowed
+* Added a configurable **default notification route** as a shared destination for system notifications
+* Added the ability to change **platform icons** via `platform-icon.*` localization keys
+* Implemented localization of **plan names** across the dashboard, subscription dialog, and purchase/promocode events
+
+**Fixes:**
+
+* Fixed custom emoji support in notification button text
+* Fixed silent loss of settings changes
+* Fixed the webhook-error notification crash
+* **Devices / Duration / Traffic** promocode rewards now require an active subscription
+* Split the "promocode not found" and "promocode not available" messages instead of a single generic one
+
+**Web & API:**
+
+* Added a **paid trial** in the web cabinet: `POST /subscription/trial/purchase` endpoint with payment gateway and price selection
+
+***
+
+## 0.8.1 (June 19, 2026)
+
+**New:**
+
+* Opening a user card now preserves the **originating list** (recent / by activity / search results / blacklist), and the "Back" button returns to it; search results are restored with the same matches
+* User list labels now show an **identifier**: `name (telegram_id | email | internal id)`
+
+**Fixes:**
+
+* Fixed handling of the **Valutix** webhook response format
+* Fixed user injection into worker dialogs: background getters (e.g. `Subscription:SUCCESS`) now receive user data
+* Allowed editing of **own** profile fields regardless of role comparison
+* Fixed purchasing and renewing a **free** subscription
+* Fixed handling of **text** menu buttons that carry media without text
+
+**Web & API:**
+
+* Added **Telegram Mini App** authentication: endpoint and `initData` validation
+* Added a **trial activation** endpoint
+* Added a **promocode activation** endpoint
+* Added a **delete-all-devices** endpoint
+* Enabled the **subscription reissue** endpoint
+
+***
+
+## 0.8.0 (June 19, 2026)
+
+**New:**
+
+* Added a **promocode** system with various discount types and usage conditions
+* Added a promocode activation notification
+* Added **detailed statistics** for promocodes and their activations
+* Added an **ad links** system: configurator, revenue tracking, etc.
+* Added the ad link to the user registration notification
+* Added a **blacklist** with bulk user blocking, plus auto-updated lists
+* Added a notification for registration attempts by blacklisted users
+* Added a **backup system** for the database and assets, with notifications
+* Added extra settings: disabling device deletion for users, subscription re-issue, referral link reset, etc.
+* Added an **"Extra settings"** section in the dashboard for options not directly tied to other sections
+* Reworked the **translation system**: user translations take priority over the built-in ones
+* Added support for **10 new locales** (BG, DA, EL, FI, HU, NO, SV, TG, TH, ZH)
+* Added support for **custom emoji**
+* Added the **Valutix** payment gateway (14 gateways now supported)
+* Improved the notification system: system notifications can be routed to a **group/topic**
+* Added **torrent blocker** and "user not connected" events
+* Added new error and exception events
+* Added a notification when inline mode is disabled at startup
+* Added a configurable **display name** for payment gateways in settings
+* Added support for **Platega** checkout without method selection
+* Added a new **message** type for extra main-menu buttons
+* Added a **color** setting for extra main-menu buttons
+* Added a **"subscribers only"** visibility flag in the extra main-menu buttons editor
+* Added a reserve button for connecting via a web browser (in case of MiniApp issues)
+* Added the ability to set a **paid trial period**
+* Added the ability to renew a subscription on a **modified plan** (with a notice that the plan terms have changed)
+* Active **connections are now dropped** when a device is deleted
+* Improved **last month's income** statistics
+* Added a back button to the referrals list (in the referral profile window)
+* Added the ability to reset a user's invite link
+* Added auto-disabling of the trial subscription when leaving the channel/group
+* Improved log detail in error and exception events
+* Hardened gateways and webhooks, improved transaction idempotency
+* Performed a security audit, fixed vulnerabilities and minor bugs
+
+**Fixes:**
+
+* Fixed the translation that displays the discount at purchase
+* Fixed revoking the OWNER role from the previous user when BOT\_OWNER\_ID changes
+* Fixed YooMoney webhook validation (API update)
+* Excluded paid trial plan purchases from referral rewards
+* Discounts are no longer applied to the trial price
+* Fixed a crash when checking out with a **100%** discount
+* Fixed retaining the purchase type during subscription checkout
+* Fixed user activity tracking (the recent interacting users list)
+* Fixed archived log compression
+
+**Upcoming Web & API:**
+
+* Added a public **REST API** (plans, subscription, referrals, authentication)
+* Added **JWT and cookie** authentication, refresh tokens, and Telegram login
+* Added **health endpoints** and a Swagger UI toggle (`APP_SWAGGER_ENABLED`)
+
+***
+
+## 0.7.5 (April 10, 2026)
+
+**New:**
+
+* Added a **"Close notification"** button in the broadcast editor
+
+**Fixes:**
+
+* Fixed proxy support for Telegram API
+* Fixed navigation bugs in the subscription dialog
+* Re-enabled YooKassa webhook signature verification
+* Fixed FreeKassa issues: incorrect nonce generation and currency handling
+* Fixed system statistics display (Remnawave)
+* Fixed traffic limit display on nodes
+* Update links now point to the official documentation instead of the GitHub README
+* Added user management buttons in device update and subscription revoke notifications
+
+***
+
+## 0.7.4 (April 7, 2026)
+
+**New:**
+
+* Added support for **Remnawave 2.7.x**
+* Added **MONTH\_ROLLING** traffic reset strategy: traffic resets based on the subscription creation date rather than a fixed calendar day
+* Added optional **SOCKS5 proxy** support for Telegram API access (configurable via `BOT_PROXY_URL` in env)
+* Added **Remnawave version compatibility check**: the bot warns if the connected panel version is outdated or unsupported
+* Added **one-time purchase discount** management: separate personal and one-time discounts per user, with the higher value applied automatically
+* Added **trial availability toggle** in the user editor
+* Added **discount type indicator** on subscription screens showing whether the active discount is personal or one-time
+* Increased maximum length for menu button labels and plan names from **16 to 32 characters**
+* Improved YooKassa payment creation: added retry logic on connection errors
+* Added permission checks when changing user roles: preventing self-demotion, protecting the Owner role, and enforcing role hierarchy
+
+**Fixes:**
+
+* Fixed role hierarchy comparison in admin list: edit access is now correctly calculated based on actor vs. target role
+* Fixed role deletion button visibility in the Administrators dialog
+* Fixed subscription statistics: counts now correctly reflect only active (current) subscriptions per user
+* Fixed trial statistics: now counts distinct users instead of total trial subscriptions
+* Fixed discount calculation: the effective discount is now the maximum of personal and one-time discounts
+* Fixed purchase discount reset after a successful payment
+* Fixed amount formatting in payments
+* Fixed `delete_commands` not being called when `setup_commands` is disabled
+* Fixed update check notification incorrectly triggering in some cases
+* Fixed Redis connection configuration
+* Fixed translator leaving blank lines after removing optional placeholders
+* Transactions in user history are now sorted by creation date (newest first)
+
+***
+
+## 0.7.3 (March 29, 2026)
+
+**Fixes:**
+
+* Fixed subscription statistics display: added **"Disabled"** and **"Limited"** fields
+* Fixed unlimited subscription count in statistics
+* Deleted subscriptions are no longer counted in statistics
+* Fixed redirect to the main subscriptions window when plan data is lost
+* Fixed migration **0019**: proper transaction handling and auto-correction of invalid URLs in menu buttons
+* Fixed variable in the text length exceeded notification for broadcasts
+* Fixed sanitization of usernames from HTML special characters
+* Fixed old subscription status when purchasing a new one: now marked as deleted
+* Limited the list of recently registered users to 50
+
+***
+
+## 0.7.2 (March 27, 2026)
+
+**New:**
+
+* Added **deep link** for redirecting to the `INVITE` dialog
+* Added **URL validation** in main menu extra buttons editor
+* Added current values display for access conditions in access mode dialog
+* Added back-to-plans button on payment method and confirm screens
+
+**Fixes:**
+
+* Fixed currency serialization via `.value` in MulenPay, UrlPay, Wata, PayMaster, CryptoPay
+* Fixed amount formatting in MulenPay
+* Fixed subscription getter: null check for `raw_plan` before `retort.load`
+* Fixed `has_device_limit`: now accounts for `device_limit == 0` (devices button is shown when device limit is unlimited)
+* Fixed broadcast preview check for empty content
+* Fixed error middleware: handle `TelegramForbiddenError` and show unknown error notification
+* Fixed translation key for plan-based broadcast
+* Fixed duplicate update available notification
+* Fixed `UserFirstConnected` event translation key and added user redirect button
+* Fixed CryptoPay settings: removed redundant `secret_key` field
+* Fixed owner role assignment for user with `owner_id`
+* Fixed `SubscriptionExpiredAgo` event
+* Fixed subscription expiring soon events
+
+***
+
+## 0.7.1 (March 25, 2026)
+
+**Infrastructure:**
+
+* Updated `.env.example` with detailed descriptions of all optional variables and documentation links
+* Centralized bot state management (inline mode, privacy, group access) in `BotService`
+* Added startup inline mode check: the system now issues a warning if it is not enabled in **BotFather**
+
+**Payments:**
+
+* Fixed gateway configuration using `Retort` for dynamic type casting
+* Adjusted data types for **YooKassa**: `shop_id` changed to string, `vat_code` to integer
+* Added "Copy webhook" button for **Platega**
+
+**Referral System:**
+
+* Added `get_referrals_with_payment_count` for accurate display of invited users' payment statistics
+
+**Users & Access:**
+
+* Changed `DeleteUserDevice` permission to `PUBLIC` to ensure proper functionality of the device management dialog
+* Added localization for the subscription reset notification
+* Migrated point withdrawal notification logic to the `Notifier` service
+
+**Fixes:**
+
+* Fixed critical errors in SDK and interactor calls (added missing keyword arguments)
+* Optimized and simplified `LocaleList` validation
+* Fixed formatting of the Remnashop version display in the corresponding menu
+
+***
+
+## 0.7.0 (March 24, 2026)
+
+**Architecture & Infrastructure:**
+
+* Restructured folder layout
+* Refactored all SQL and DTO models
+* Reworked all services and database interactions
+* Moved all business logic from the UI layer into UseCases
+* Refactored tasks and background jobs
+* Refactored and improved translations
+* Reworked Telegram middlewares
+* Updated aiogram and aiogram-dialog dependencies (style support added)
+* Made Redis password optional
+* Reduced log file size on rotation
+* Added environment variables for the logger
+* Improved logging
+
+**Security & Access:**
+
+* Improved security
+* Fixed bypass of registration and access checks when the bot is blocked
+* Fixed self-role removal bug
+* Changed roles (**USER, PREVIEW, ADMIN, DEV, OWNER, SYSTEM**)
+* Implemented role-based permissions
+* Added role change for the previous owner (former DEV) when OWNER\_ID (former DEV\_ID) is updated
+* Implemented subscription link reset (device management) for users
+
+**Performance:**
+
+* Improved overall performance
+* Improved broadcast speed
+* Implemented a queue for notifications
+* Fixed repeated task execution on long-running tasks
+
+**Payments:**
+
+* Added payment gateways: **FreeKassa, MulenPay, PayMaster, Platega, RoboKassa, UrlPay, WATA**
+* Added configuration validation when receiving a payment gateway webhook
+* Added `build_webhook_response` method for customizing payment gateway responses
+* Fixed inability to extend a subscription to unlimited
+
+**Plans & Subscriptions:**
+
+* Added ability to create multiple trial plans
+* Added plan import and export
+* Implemented plan availability via link
+* Implemented translation support for plan names and descriptions
+* Implemented duration sorting in the plan editor
+* Fixed traffic reset on renewal (traffic is now reset on renewal)
+* Unlimited is now set as `0` instead of `-1` (both work, but stored as `0` in the database)
+* Fixed plan access validation
+
+**Referral System:**
+
+* Fixed reward being granted when the referral system is disabled
+* Fixed referral pinning notification when the referral system is disabled
+* Fixed message about inability to issue a reward without an active subscription
+* Implemented sending a referral link via `inline_query` with a "Join" button
+* Added an additional "Go to referrer" button for the registration event
+
+**Broadcasts & Notifications:**
+
+* Improved purchase availability broadcast (when purchases were restricted)
+* Implemented variable support in broadcasts (auto-substitution of user data; full list of variables coming soon)
+* Added maximum character limit for broadcasts
+
+**Interface:**
+
+* Fixed button grouping in the Remnawave dialog
+* Implemented an editor for additional main menu buttons (with translation support)
+* Added styles for certain buttons
+* Improved the statistics dialog
+* Improved statistics collection
+* Fixed redirect after an error when receiving a trial period
+* Improved device management dialog (user-facing)
+
+**Users:**
+
+* Implemented user statistics
+* Implemented referral viewing in user statistics
+* Fixed search for users with hidden accounts
+* Fixed saving of `full_name` and `username` to the database on change

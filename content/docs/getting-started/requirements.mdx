@@ -3,4 +3,38 @@ title: Requirements
 description: What to prepare before installing
 ---
 
-This page will list the requirements: server specs, Docker version, access to the Remnawave panel and the bot credentials from BotFather.
+## Compatible Remnawave Panel versions
+
+| Remnashop Version | Remnawave Panel Version |
+| ----------------- | ----------------------- |
+| `0.7.4` — `0.8.0` | `>= 2.7.0` `< 2.8.0`    |
+| `0.7.0` — `0.7.3` | `>= 2.6.0` `< 2.7.0`    |
+| `0.6.6`           | `>= 2.3.2` `<= 2.5.7`   |
+
+***
+
+## Hardware
+
+* **OS**: **Ubuntu** or **Debian** recommended
+* **RAM**: minimum 2 GB, 4 GB recommended
+* **CPU**: minimum 2 cores, 4 cores recommended
+* **Storage**: 20 GB
+
+  <Callout type="idea">
+    Remnashop can run with lower specifications, but this is not
+    recommended. Some background processes can be resource-intensive.
+  </Callout>
+
+***
+
+## Software
+
+Remnashop requires Docker with the Docker Compose plugin.
+
+<Accordions>
+<Accordion title="Install Docker using the official script">
+```text
+sudo curl -fsSL https://get.docker.com | sh
+```
+</Accordion>
+</Accordions>

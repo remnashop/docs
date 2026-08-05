@@ -3,4 +3,20 @@ title: Updating
 description: Moving to a new version
 ---
 
-This page will cover the update routine: checking the release notes, running database migrations and restarting the containers.
+To update and restart the bot, run the following command:
+
+```bash title="Update the bot"
+cd /opt/remnashop && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+The built-in assets (default translations and banners) ship inside the Docker image and are updated automatically together with the bot — you no longer need to reset them manually.
+
+On startup after an update, the bot:
+
+* Picks up the latest built-in translations and banners from the image.
+* Keeps your custom translations (`custom.ftl`) and banners unchanged.
+* When upgrading from a version below 0.8, moves the old translation files into a `.legacy/` folder — only `custom.ftl` remains in the user volume.
+
+<Callout>
+Your overrides in `custom.ftl` and your own banners in `assets/` are never touched by an update. See the [Assets](/docs/getting-started/assets) page for details.
+</Callout>
