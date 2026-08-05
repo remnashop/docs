@@ -34,8 +34,8 @@ html {
   /* next-themes is disabled, so nothing else tells the browser to draw dark scrollbars. */
   color-scheme: dark;
   scrollbar-gutter: stable;
-  /* The hero's particle layer is wider than the viewport on purpose. Clipping here rather
-     than on a flex ancestor: Safari collapses flex children when they carry overflow clip. */
+  /* Safety net only: decorative layers clip themselves, since mobile Safari does not
+     propagate a root-level clip to the viewport. */
   overflow-x: clip;
   /* Painted on the canvas so the decorative layers below can sit at z-index -1.
      The solid colour underneath is what Safari samples to tint its toolbar. */
