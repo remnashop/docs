@@ -1,4 +1,4 @@
-export const appName = 'remnashop';
+export const appName = 'Remnashop';
 export const siteUrl = 'https://remnashop.dev';
 export const telegramUrl = 'https://t.me/remna_shop';
 export const docsRoute = '/docs';

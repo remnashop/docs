@@ -10,12 +10,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Страница не найдена — remnashop',
+  title: 'Страница не найдена — Remnashop',
+  icons: { icon: '/logo.svg' },
 };
 
 export default function GlobalNotFound() {
   return (
-    <html lang="ru" className={inter.className} suppressHydrationWarning>
+    <html lang="ru" className={`dark ${inter.className}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
         <h1 className="text-2xl font-semibold">404 — страница не найдена</h1>
         <p className="text-fd-muted-foreground">

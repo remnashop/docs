@@ -17,6 +17,7 @@ export function Provider({ lang, children }: { lang: string; children: ReactNode
         onLocaleChange: (target) => router.push(localeSwitchPath(pathname, target)),
       }}
       search={{ SearchDialog }}
+      theme={{ enabled: false }}
     >
       {children}
     </RootProvider>

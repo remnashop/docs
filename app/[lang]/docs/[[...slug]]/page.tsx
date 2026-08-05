@@ -23,14 +23,20 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      <DocsTitle>{page.data.title}</DocsTitle>
-      <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
-      <div className="flex flex-row gap-2 items-center border-b pb-6">
-        <MarkdownCopyButton markdownUrl={markdownUrl} />
-        <ViewOptionsPopover
-          markdownUrl={markdownUrl}
-          githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/docs/${page.path}`}
-        />
+      <div className="border-b pb-6">
+        {/* Stacked on phones, where the buttons would otherwise crush the title. */}
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <DocsTitle>{page.data.title}</DocsTitle>
+          {/* shrink-0 keeps the buttons intact when a long title wraps. */}
+          <div className="flex shrink-0 flex-row items-center gap-2">
+            <MarkdownCopyButton markdownUrl={markdownUrl} />
+            <ViewOptionsPopover
+              markdownUrl={markdownUrl}
+              githubUrl={`https://github.com/${gitConfig.user}/${gitConfig.repo}/blob/${gitConfig.branch}/content/docs/${page.path}`}
+            />
+          </div>
+        </div>
+        <DocsDescription className="mt-2 mb-0">{page.data.description}</DocsDescription>
       </div>
       <DocsBody>
         <MDX
