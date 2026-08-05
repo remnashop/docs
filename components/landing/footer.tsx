@@ -1,5 +1,4 @@
-import Link from 'next/link';
-import { getLanding, getDocsHref } from '@/lib/landing-content';
+import { getLanding } from '@/lib/landing-content';
 import { gitConfig, telegramUrl } from '@/lib/shared';
 
 export function Footer({ lang }: { lang: string }) {
@@ -9,9 +8,6 @@ export function Footer({ lang }: { lang: string }) {
     <footer className="border-fd-border mt-8 border-t py-10">
       <div className="text-fd-muted-foreground mx-auto flex max-w-5xl flex-col items-center gap-4 px-4 text-sm">
         <div className="flex flex-wrap items-center justify-center gap-6">
-          <Link href={getDocsHref(lang)} className="hover:text-fd-foreground transition-colors">
-            {footer.docs}
-          </Link>
           <a
             href={`https://github.com/${gitConfig.user}/${gitConfig.repo}`}
             className="hover:text-fd-foreground transition-colors"

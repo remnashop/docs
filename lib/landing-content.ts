@@ -1,26 +1,30 @@
 import { withLocale } from './i18n';
 
-export type Feature = { icon: string; title: string; description: string };
+export type Feature = {
+  icon: string;
+  title: string;
+  description: string;
+};
 
 export type Landing = {
   hero: { title: string; subtitle: string; primaryCta: string; githubCta: string; telegramCta: string };
   featuresTitle: string;
   features: Feature[];
-  quickStart: { title: string; description: string; code: string };
+  quickStart: {
+    title: string;
+    description: string;
+    docsCta: string;
+    steps: { title: string; hint?: string; code?: string }[];
+  };
   screenshotsTitle: string;
-  footer: { docs: string; github: string; telegram: string; note: string };
+  footer: { github: string; telegram: string; note: string };
 };
-
-const QUICK_START_CODE = `git clone https://github.com/snoups/remnashop.git
-cd remnashop
-cp .env.example .env
-docker compose -f docker-compose.prod.internal.yml up -d`;
 
 const ru: Landing = {
   hero: {
-    title: 'Telegram-бот для продажи VPN-подписок',
+    title: 'Готовая платформа для продажи VPN-подписок',
     subtitle:
-      'remnashop работает поверх Remnawave: принимает оплату, выдаёт доступ и ведёт клиента от первого запуска до продления.',
+      'Автоматизируйте приём платежей, выдачу VPN-доступа и управление клиентами через веб-приложение или Telegram-бота.',
     primaryCta: 'Документация',
     githubCta: 'GitHub',
     telegramCta: 'Telegram',
@@ -30,42 +34,57 @@ const ru: Landing = {
     {
       icon: 'Network',
       title: 'Интеграция с Remnawave',
-      description: 'Выдача и отзыв доступа синхронизированы с панелью Remnawave.',
+      description: 'Любые изменения автоматически синхронизируются с панелью Remnawave в обе стороны.',
     },
     {
       icon: 'CreditCard',
       title: '13 платёжных шлюзов',
-      description: 'Telegram Stars, YooKassa, Cryptomus, CryptoPay и другие — из коробки.',
+      description: 'Telegram Stars, YooKassa, Cryptomus, CryptoPay и другие — доступны из коробки.',
     },
     {
       icon: 'CalendarClock',
       title: 'Подписки и триалы',
-      description: 'Пробный период, продление и льготный период после окончания оплаты.',
+      description: 'Пробный период, продление и льготный период после окончания подписки.',
     },
     {
       icon: 'Users',
       title: 'Реферальная программа',
-      description: 'Приглашения с вознаграждением за приведённых пользователей.',
+      description: 'Вознаграждения за приглашённых пользователей, учёт начислений и аналитика.',
     },
     {
       icon: 'LayoutDashboard',
       title: 'Веб-кабинет',
-      description: 'Личный кабинет с подпиской, устройствами и историей платежей.',
+      description: 'Личный кабинет с информацией о подписке, устройствах и истории платежей.',
     },
     {
       icon: 'Languages',
       title: 'Мультиязычность',
-      description: 'Интерфейс бота вынесен в переводы и расширяется новыми языками.',
+      description: 'Простое редактирование переводов и поддержка нескольких языков.',
     },
   ],
   quickStart: {
     title: 'Быстрый старт',
-    description: 'Четыре команды — и бот поднят на вашем сервере.',
-    code: QUICK_START_CODE,
+    description: 'Всего три шага до развёртывания на вашем сервере.',
+    docsCta: 'Полная инструкция по установке',
+    steps: [
+      {
+        title: 'Скачать конфигурацию',
+        code: `mkdir -p /opt/remnashop && cd /opt/remnashop
+curl -o .env https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/.env.example
+curl -o docker-compose.yml https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/docker-compose.prod.internal.yml`,
+      },
+      {
+        title: 'Заполнить .env',
+        hint: 'Домен, токен бота из BotFather, ID владельца и доступ к панели Remnawave.',
+      },
+      {
+        title: 'Запустить',
+        code: 'docker compose up -d && docker compose logs -f -t',
+      },
+    ],
   },
   screenshotsTitle: 'Как это выглядит',
   footer: {
-    docs: 'Документация',
     github: 'GitHub',
     telegram: 'Telegram',
     note: 'Открытый исходный код, лицензия MIT',
@@ -74,9 +93,9 @@ const ru: Landing = {
 
 const en: Landing = {
   hero: {
-    title: 'A Telegram bot for selling VPN subscriptions',
+    title: 'A ready-made platform for selling VPN subscriptions',
     subtitle:
-      'remnashop runs on top of Remnawave: it takes payments, grants access, and guides the customer from first launch to renewal.',
+      'Automate payments, VPN access and customer management through a web app or a Telegram bot.',
     primaryCta: 'Documentation',
     githubCta: 'GitHub',
     telegramCta: 'Telegram',
@@ -86,42 +105,57 @@ const en: Landing = {
     {
       icon: 'Network',
       title: 'Remnawave integration',
-      description: 'Granting and revoking access stays in sync with the Remnawave panel.',
+      description: 'Any change syncs with the Remnawave panel automatically, in both directions.',
     },
     {
       icon: 'CreditCard',
       title: '13 payment gateways',
-      description: 'Telegram Stars, YooKassa, Cryptomus, CryptoPay and more, out of the box.',
+      description: 'Telegram Stars, YooKassa, Cryptomus, CryptoPay and more — available out of the box.',
     },
     {
       icon: 'CalendarClock',
       title: 'Subscriptions and trials',
-      description: 'Trial periods, renewals, and a grace period once payment lapses.',
+      description: 'Trial period, renewals and a grace period after the subscription ends.',
     },
     {
       icon: 'Users',
       title: 'Referral program',
-      description: 'Invitations that reward users for everyone they bring in.',
+      description: 'Rewards for invited users, payout tracking and analytics.',
     },
     {
       icon: 'LayoutDashboard',
       title: 'Web cabinet',
-      description: 'A personal dashboard with subscription, devices, and payment history.',
+      description: 'A personal dashboard with subscription details, devices and payment history.',
     },
     {
       icon: 'Languages',
       title: 'Multilingual',
-      description: 'All bot copy lives in translation files and extends to new languages.',
+      description: 'Straightforward translation editing and support for several languages.',
     },
   ],
   quickStart: {
     title: 'Quick start',
-    description: 'Four commands and the bot is running on your server.',
-    code: QUICK_START_CODE,
+    description: 'Just three steps to deploy on your server.',
+    docsCta: 'Full installation guide',
+    steps: [
+      {
+        title: 'Download the configuration',
+        code: `mkdir -p /opt/remnashop && cd /opt/remnashop
+curl -o .env https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/.env.example
+curl -o docker-compose.yml https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/docker-compose.prod.internal.yml`,
+      },
+      {
+        title: 'Fill in .env',
+        hint: 'Domain, the bot token from BotFather, the owner ID and access to the Remnawave panel.',
+      },
+      {
+        title: 'Start it',
+        code: 'docker compose up -d && docker compose logs -f -t',
+      },
+    ],
   },
   screenshotsTitle: 'What it looks like',
   footer: {
-    docs: 'Documentation',
     github: 'GitHub',
     telegram: 'Telegram',
     note: 'Open source, MIT licensed',
@@ -132,6 +166,11 @@ export function getLanding(lang: string) {
   return lang === 'en' ? en : ru;
 }
 
+// The docs entry point is the introduction, not the bare /docs index.
 export function getDocsHref(lang: string) {
-  return withLocale(lang, '/docs');
+  return withLocale(lang, '/docs/overview/introduction');
+}
+
+export function getInstallHref(lang: string) {
+  return withLocale(lang, '/docs/getting-started/installation');
 }
