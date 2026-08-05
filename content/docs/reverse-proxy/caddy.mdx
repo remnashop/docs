@@ -3,4 +3,186 @@ title: Caddy
 description: Proxying with Caddy
 ---
 
-This page will show a `Caddyfile` for remnashop: proxying the bot and the web cabinet, with certificates issued automatically.
+In this guide we will use Caddy as a reverse proxy to reach Remnashop. We will point a domain name at the server and configure Caddy — the certificates are issued by Caddy itself.
+
+<Callout type="warn">
+You need a registered domain name to continue.
+</Callout>
+
+***
+
+## Point your domain to the server
+
+Check your server's IP address. A static IPv4 address works best.
+
+Now point your domain name at that address, for example `my-super-panel.com` → `193.122.122.122`.
+
+There are two ways to do it:
+
+1. Through a DNS provider — Cloudflare, Google Cloud and the like
+2. Through your registrar — Namecheap and the like
+
+***
+
+## DNS provider
+
+With Cloudflare you add an A record for IPv4 or an AAAA record for IPv6.
+
+Log in to [your Cloudflare account](https://dash.cloudflare.com/login) and pick the domain. In the left column open `DNS`, then `Records`, and click `Create record`.
+
+Set `Type` to `A` and `Name` to `@`.
+
+<Callout type="idea">
+For a subdomain, put its name — `bot`, for instance — in the `Name` field instead.
+</Callout>
+
+Enter your server's IP address in the `IPv4 address` field and click `Save`. DNS records take a while to propagate.
+
+<Callout type="idea">
+The yellow cloud (domain proxied through Cloudflare) and the grey cloud (domain not proxied) behave differently. If Cloudflare works well in your region, proxying through it is the better choice.
+</Callout>
+
+![Cloudflare DNS records](/images/cloudflare-dns.webp)
+
+Other DNS providers look different, but the process is the same.
+
+***
+
+## Caddy configuration
+
+Caddy can run on the same server as the Remnawave panel or on a separate one. Pick the matching tab.
+
+<Tabs items={["Same server","Separate server"]}>
+<Tab value="Same server">
+Caddy runs on the same server as the Remnawave panel.
+
+<Callout type="error">
+Caddy must already be installed and configured on the server that runs the Remnawave panel and the other components.
+</Callout>
+
+#### Prepare the Caddyfile
+
+With Caddy already configured, you only add a new site block to the Caddyfile:
+
+```bash title="Edit Caddyfile"
+cd /opt/remnawave/caddy && nano Caddyfile
+```
+
+<Callout type="warn">
+Replace `BOT_DOMAIN` with your domain name.
+</Callout>
+
+<Callout type="error">
+Do not replace the existing configuration — only add the Remnashop site block to it.
+</Callout>
+
+```text title="Caddyfile"
+# PANEL
+https://REPLACE_WITH_YOUR_DOMAIN {
+        reverse_proxy * http://remnawave:3000
+}
+# SUBSCRIPTION PAGE
+https://SUBSCRIPTION_PAGE_DOMAIN {
+        reverse_proxy * http://remnawave-subscription-page:3010
+}
+# REMNASHOP (all API v1 → remnashop:5000)
+https://BOT_DOMAIN {
+        reverse_proxy /api/v1/* http://remnashop:5000
+}
+# CATCH-ALL
+:443 {
+    tls internal
+    respond 204
+}
+```
+
+#### Restart the containers
+
+```bash title="Restart the Caddy container"
+cd /opt/remnawave/caddy && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+```bash title="Restart the Remnashop containers"
+cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+<Callout type="idea">
+If everything is configured correctly, Remnashop sends a startup notification in Telegram.
+</Callout>
+</Tab>
+
+<Tab value="Separate server">
+Caddy runs on a different server than the Remnawave panel and the other components.
+
+<Callout type="error">
+No other reverse proxy may be installed on this server.
+</Callout>
+
+#### Create the Caddyfile
+
+```bash title="Create Caddyfile"
+mkdir -p /opt/remnawave/caddy && cd /opt/remnawave/caddy && nano Caddyfile
+```
+
+<Callout type="warn">
+Replace `REPLACE_WITH_YOUR_DOMAIN` with your domain name.
+</Callout>
+
+```text title="Caddyfile"
+https://REPLACE_WITH_YOUR_DOMAIN {
+        reverse_proxy /api/v1/* http://remnashop:5000
+}
+:443 {
+    tls internal
+    respond 204
+}
+```
+
+#### Create docker-compose.yml
+
+```bash title="Create docker-compose.yml"
+cd /opt/remnawave/caddy && nano docker-compose.yml
+```
+
+```yaml title="docker-compose.yml"
+services:
+    caddy:
+        image: caddy:2.9
+        container_name: 'caddy'
+        hostname: caddy
+        restart: always
+        ports:
+            - '0.0.0.0:443:443'
+            - '0.0.0.0:80:80'
+        networks:
+            - remnawave-network
+        volumes:
+            - ./Caddyfile:/etc/caddy/Caddyfile
+            - caddy-ssl-data:/data
+networks:
+    remnawave-network:
+        name: remnawave-network
+        driver: bridge
+        external: true
+volumes:
+    caddy-ssl-data:
+        driver: local
+        external: false
+        name: caddy-ssl-data
+```
+
+#### Start the containers
+
+```bash title="Start Caddy"
+docker compose up -d && docker compose logs -f -t
+```
+
+```bash title="Restart the Remnashop containers"
+cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+<Callout type="idea">
+If everything is configured correctly, Remnashop sends a startup notification in Telegram.
+</Callout>
+</Tab>
+</Tabs>

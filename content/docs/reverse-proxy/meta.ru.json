@@ -1,6 +1,7 @@
 {
   "title": "Реверс-прокси",
   "pages": [
+    "index",
     "caddy",
     "nginx",
     "traefik"
