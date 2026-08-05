@@ -1,6 +1,6 @@
 import { Inter } from 'next/font/google';
 import { Provider } from '@/components/provider';
-import { i18n } from '@/lib/i18n';
+import { i18n, localeRedirectScript } from '@/lib/i18n';
 import { appName, siteUrl } from '@/lib/shared';
 import { getLanding } from '@/lib/landing-content';
 import type { Metadata, Viewport } from 'next';
@@ -40,6 +40,10 @@ export default async function Layout({ params, children }: LayoutProps<'/[lang]'
 
   return (
     <html lang={lang} className={`dark ${inter.className}`} suppressHydrationWarning>
+      <head>
+        {/* Must stay synchronous and first: it redirects before the body paints. */}
+        <script dangerouslySetInnerHTML={{ __html: localeRedirectScript() }} />
+      </head>
       <body className="flex flex-col min-h-screen">
         <Provider lang={lang}>{children}</Provider>
       </body>
