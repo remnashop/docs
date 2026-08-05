@@ -1,6 +1,6 @@
 # remnashop docs
 
-Landing page and documentation for [remnashop](https://github.com/snoups/remnashop), built with
+Landing page and documentation for [Remnashop](https://github.com/snoups/remnashop), built with
 [Fumadocs](https://fumadocs.dev).
 
 Site: <https://remnashop.dev>
@@ -40,8 +40,8 @@ Interface translations (not content) live in `lib/translations.ts`.
 
 ## Landing page screenshots
 
-`public/screenshots` holds four placeholders, `1.png` through `4.png`. Replace them with real bot
-screenshots — no code changes required.
+The screenshot tiles are empty placeholders showing an icon. Swap them for real images in
+`components/landing/screenshots.tsx` once the screenshots exist.
 
 ## Deployment
 
