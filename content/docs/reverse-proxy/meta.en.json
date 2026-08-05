@@ -1,0 +1,8 @@
+{
+  "title": "Reverse proxy",
+  "pages": [
+    "caddy",
+    "nginx",
+    "traefik"
+  ]
+}

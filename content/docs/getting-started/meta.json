@@ -1,0 +1,12 @@
+{
+  "title": "Начало",
+  "collapsible": false,
+  "pages": [
+    "requirements",
+    "installation",
+    "environment",
+    "assets",
+    "custom-emoji",
+    "updating"
+  ]
+}

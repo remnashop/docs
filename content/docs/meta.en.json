@@ -1,4 +1,9 @@
 {
   "title": "Documentation",
-  "pages": ["index", "releases", "installation", "configuration", "features"]
+  "pages": [
+    "overview",
+    "getting-started",
+    "reverse-proxy",
+    "!index"
+  ]
 }
