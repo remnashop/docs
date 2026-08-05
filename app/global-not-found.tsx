@@ -10,20 +10,20 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Страница не найдена — Remnashop',
+  title: 'Page not found — Remnashop',
   icons: { icon: '/logo.svg' },
 };
 
 export default function GlobalNotFound() {
   return (
-    <html lang="ru" className={`dark ${inter.className}`} suppressHydrationWarning>
+    <html lang="en" className={`dark ${inter.className}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col items-center justify-center gap-4 text-center">
-        <h1 className="text-2xl font-semibold">404 — страница не найдена</h1>
+        <h1 className="text-2xl font-semibold">404 — page not found</h1>
         <p className="text-fd-muted-foreground">
-          Возможно, она была перемещена или её адрес изменился.
+          It may have been moved, or its address has changed.
         </p>
         <Link href="/" className="text-fd-primary underline">
-          На главную
+          Go home
         </Link>
       </body>
     </html>

@@ -1,11 +1,11 @@
 // With output: 'export' Next.js middleware never runs, so Fumadocs cannot strip the
 // default locale prefix at request time: links point at /docs/... while the files are
-// emitted to out/ru/docs/... This script lifts the default locale up to the out/ root.
+// emitted to out/en/docs/... This script lifts the default locale up to the out/ root.
 import { cp, rm, access, readdir } from 'node:fs/promises';
 import { join } from 'node:path';
 
 const out = join(process.cwd(), 'out');
-const defaultLocale = 'ru';
+const defaultLocale = 'en';
 const localeDir = join(out, defaultLocale);
 
 try {

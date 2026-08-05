@@ -1,5 +1,5 @@
 {
-  "title": "Реверс-прокси",
+  "title": "Reverse proxy",
   "pages": [
     "caddy",
     "nginx",
