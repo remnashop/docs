@@ -5,12 +5,53 @@ Landing page and documentation for [Remnashop](https://github.com/snoups/remnash
 
 Site: <https://remnashop.dev>
 
-## Local development
+## Quick start
+
+Fork the repository on GitHub, then:
 
 ```bash
+git clone https://github.com/<your-user>/docs.git remnashop-docs
+cd remnashop-docs
 npm install
 npm run dev
 ```
+
+The dev server runs on <http://localhost:3000>. Edits to files under `content/docs` show up
+without a restart.
+
+To publish the site on your own domain, point `siteUrl`, `gitConfig` and `telegramUrl` in
+`lib/shared.ts` at your project and put your domain in `public/CNAME`.
+
+## Editing the documentation
+
+Every page is an MDX file in `content/docs`, and its URL mirrors the path on disk:
+`content/docs/getting-started/installation.mdx` becomes `/docs/getting-started/installation`.
+
+To add a page, create the file with a `title` and `description` in the frontmatter:
+
+```mdx
+---
+title: My page
+description: What this page covers
+---
+
+The content goes here.
+```
+
+Then list its filename (without the extension) in the `pages` array of the `meta.json` next to
+it — that array is what builds the sidebar. A page left out of `pages` is still reachable by URL,
+but it never shows up in the navigation.
+
+Adding a whole section means creating a directory with its own `meta.json` and naming that
+directory in `content/docs/meta.json`.
+
+## Translations
+
+The English version of a page is the file without a suffix (`installation.mdx`), the Russian one
+carries a locale suffix (`installation.ru.mdx`). Section order and titles come from `meta.json`
+and `meta.ru.json`.
+
+Interface translations (not content) live in `lib/translations.ts`.
 
 ## Build
 
@@ -29,21 +70,3 @@ cannot strip the default locale prefix at request time. The result:
 | `/docs/...` | documentation, English |
 | `/ru/` | landing page, Russian |
 | `/ru/docs/...` | documentation, Russian |
-
-## Content structure
-
-Pages live in `content/docs`. The English version is the file without a suffix
-(`installation.mdx`), the Russian one carries a locale suffix (`installation.ru.mdx`). Section
-order and titles come from `meta.json` and `meta.ru.json`.
-
-Interface translations (not content) live in `lib/translations.ts`.
-
-## Landing page screenshots
-
-The screenshot tiles are empty placeholders showing an icon. Swap them for real images in
-`components/landing/screenshots.tsx` once the screenshots exist.
-
-## Deployment
-
-Pushing to `main` triggers the `deploy` workflow: it builds the site and publishes it to GitHub
-Pages. The custom domain is pinned in `public/CNAME`.
