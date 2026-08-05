@@ -21,8 +21,12 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
 
+  // Depth 4 and below stays out of the table of contents: the install steps live inside tabs,
+  // so listing them would repeat every step once per tab.
+  const toc = page.data.toc.filter((item) => item.depth <= 3);
+
   return (
-    <DocsPage toc={page.data.toc} full={page.data.full}>
+    <DocsPage toc={toc} full={page.data.full}>
       <div className="border-b pb-6">
         {/* Stacked on phones, where the buttons would otherwise crush the title. */}
         <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
