@@ -1,8 +1,8 @@
 import { getPageImageUrl, source } from '@/lib/source';
 import { notFound } from 'next/navigation';
 import { ImageResponse } from 'next/og';
-import { generate as DefaultImage } from 'fumadocs-ui/og';
-import { appName, ogAccent, ogAccentSoft } from '@/lib/shared';
+import { OgCard, ogSize } from '@/lib/og-card';
+import { siteUrl } from '@/lib/shared';
 
 export const revalidate = false;
 
@@ -12,17 +12,12 @@ export async function GET(_req: Request, { params }: RouteContext<'/[lang]/og/do
   if (!page) notFound();
 
   return new ImageResponse(
-    <DefaultImage
+    <OgCard
       title={page.data.title}
       description={page.data.description}
-      site={appName}
-      primaryColor={ogAccentSoft}
-      primaryTextColor={ogAccent}
+      footer={new URL(siteUrl).host}
     />,
-    {
-      width: 1200,
-      height: 630,
-    },
+    ogSize,
   );
 }
 
