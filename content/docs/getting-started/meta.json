@@ -1,5 +1,6 @@
 {
   "title": "Getting started",
+  "defaultOpen": true,
   "pages": [
     "requirements",
     "installation",

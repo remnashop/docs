@@ -1,5 +1,6 @@
 {
   "title": "Начало",
+  "defaultOpen": true,
   "pages": [
     "requirements",
     "installation",
