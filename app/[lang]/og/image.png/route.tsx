@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og';
 import { generate as DefaultImage } from 'fumadocs-ui/og';
-import { appName, siteUrl } from '@/lib/shared';
+import { appName, ogAccent, ogAccentSoft, siteUrl } from '@/lib/shared';
 import { getLanding } from '@/lib/landing-content';
 import { i18n } from '@/lib/i18n';
 
@@ -15,7 +15,13 @@ export async function GET(_req: Request, { params }: RouteContext<'/[lang]/og/im
   const landing = getLanding(lang);
 
   return new ImageResponse(
-    <DefaultImage title={appName} description={landing.hero.title} site={new URL(siteUrl).host} />,
+    <DefaultImage
+      title={appName}
+      description={landing.hero.title}
+      site={new URL(siteUrl).host}
+      primaryColor={ogAccentSoft}
+      primaryTextColor={ogAccent}
+    />,
     {
       width: 1200,
       height: 630,
