@@ -64,11 +64,21 @@ export async function generateMetadata(
   const page = source.getPage(slug, lang);
   if (!page) notFound();
 
+  const image = getPageImageUrl(page).url;
+
+  // Both cards are set explicitly: the layout declares a twitter card for the landing, and
+  // a partial override here would leave the page sharing the landing image.
   return {
     title: page.data.title,
     description: page.data.description,
     openGraph: {
-      images: getPageImageUrl(page).url,
+      images: image,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: page.data.title,
+      description: page.data.description,
+      images: image,
     },
   };
 }

@@ -1,6 +1,6 @@
 import { Inter } from 'next/font/google';
 import { Provider } from '@/components/provider';
-import { i18n, localeRedirectScript } from '@/lib/i18n';
+import { i18n, localeRedirectScript, withLocale } from '@/lib/i18n';
 import { appName, siteUrl } from '@/lib/shared';
 import { getLanding } from '@/lib/landing-content';
 import type { Metadata, Viewport } from 'next';
@@ -19,6 +19,9 @@ export const viewport: Viewport = {
 // Description follows the landing subtitle, so the two never drift apart.
 export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Promise<Metadata> {
   const { lang } = await params;
+  const { subtitle } = getLanding(lang).hero;
+  // Docs pages override the image with their own; this is what the landing shares.
+  const image = withLocale(lang, '/og/image.png');
 
   return {
     metadataBase: new URL(siteUrl),
@@ -26,8 +29,23 @@ export async function generateMetadata({ params }: LayoutProps<'/[lang]'>): Prom
       default: appName,
       template: `%s — ${appName}`,
     },
-    description: getLanding(lang).hero.subtitle,
+    description: subtitle,
     icons: { icon: '/logo.svg' },
+    openGraph: {
+      type: 'website',
+      siteName: appName,
+      title: appName,
+      description: subtitle,
+      url: withLocale(lang, '/'),
+      locale: lang === 'ru' ? 'ru_RU' : 'en_US',
+      images: [{ url: image, width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: appName,
+      description: subtitle,
+      images: [image],
+    },
   };
 }
 
