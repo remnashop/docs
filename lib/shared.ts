@@ -10,7 +10,9 @@ export const ogAccent = '#22d3ee';
 export const ogAccentSoft = 'rgba(34, 211, 238, 0.3)';
 
 export const gitConfig = {
-  user: 'snoups',
+  user: 'remnashop',
   repo: 'remnashop',
+  // this site's own sources, where the docs pages live
+  docsRepo: 'docs',
   branch: 'main',
 };

@@ -1,161 +1,199 @@
 ---
 title: Introduction
-description: What Remnashop is and how it works
+icon: BookOpen
 ---
 
-Remnashop is a platform for selling VPN subscriptions, integrated with
-[Remnawave](https://github.com/remnawave). Both customers and administrators work with it through
-a Telegram bot and a web cabinet.
+import { Download, ListChecks, MessagesSquare } from 'lucide-react';
 
-<Callout type="warn">Some features are still under development and testing.</Callout>
+Remnashop is a ready-made platform for selling VPN subscriptions on top of
+[Remnawave](https://github.com/remnawave). Customers buy and renew their subscription in the
+Telegram bot or the web cabinet, and you run everything from the dashboard. The platform is free,
+open source under the MIT license, and runs on your own server with Docker.
 
-## Features
+The Telegram bot and the web cabinet work together or on their own. Remnashop takes no commission on sales — you only pay your payment
+gateway. All data stays in your database: the bot token, payment gateway keys and OAuth
+secrets are encrypted.
 
-<Accordions>
+You need a running Remnawave panel and a server with Docker — see the
+[requirements](/docs/getting-started/requirements).
 
-<Accordion title="📦 Plans">
-- Plan configurator directly in the bot interface.
-- Unique architecture for flexible plan creation and precise availability control.
-- Support for any limits — by traffic, devices, both, or unlimited.
-- Availability control for specific users or user types.
-- Link internal and external squads to specific plans.
-- Support for any subscription duration.
-- Ability to make a plan free of charge.
-- Multi-currency pricing for each duration.
-- Customizable plan display order.
-- Plan import and export.
+<Accordions title="Features" description="What Remnashop can do" icon="LayoutGrid">
+
+<Accordion title="Analytics" icon="ChartColumn">
+- Home page: revenue for a period, subscription state, online users and the latest payments.
+- Nodes, countries and client apps.
+- Key metrics compared with the previous period: revenue, MRR, ARPPU, new payers, conversion and churn.
+- New customer funnel: sign-up, VPN connection, first and repeat payment — also by source.
+- Revenue by day, week and month, split into new subscriptions, renewals and plan changes, by plan and by duration; average order value and refunds.
+- Payment success rate per gateway.
+- LTV: mean and median, distribution, by first plan and by source, top payers.
+- Retention: the curve and cohorts by month of first payment, monthly churn, subscriptions expiring in the next 30 days.
+- Trial: conversion to payment, the day customers buy on and what they pick after the trial.
+- Acquisition sources, referral program payback and top referrers.
+- Promo code effectiveness and activations by reward type.
 </Accordion>
 
-<Accordion title="🎟️ Promocodes">
-- Multiple reward types: extra days, traffic, subscription activation for a chosen plan, personal discount, or discount for the next purchase.
-- Configurable lifetime: by time or number of activations.
-- Convenient promocode configurator.
-- Detailed statistics for promocodes and their activations.
+<Accordion title="Plans" icon="Package">
+- Traffic limits, device limits, both or unlimited.
+- Any durations; reorder plans by dragging.
+- Availability: everyone, new, existing, invited, a list of Telegram IDs and emails, or by direct link only.
+- Internal and external squads per plan.
+- A plan discount with start and end dates.
+- Trial plans — paid or free.
+- Add-ons on top of a subscription: extra traffic and devices.
+- The use of bonus days and promo codes can be allowed or blocked per plan.
 </Accordion>
 
-<Accordion title="📢 Broadcasts">
-- View all previously sent messages with content preview.
-- Send by user category: all users, by plan, with subscription, without subscription, expired, or trial.
-- Supports photos, videos, GIFs, and stickers.
-- Supports HTML tags for message formatting.
-- Preview messages before sending.
-- Option to stop an active broadcast.
-- Option to delete sent messages.
+<Accordion title="Prices and currencies" icon="Coins">
+- Rubles, US dollars and Telegram Stars.
+- An anchor currency with conversion rates, rounding and minimum amounts.
+- A price matrix with per-currency overrides for plans and add-ons.
+- Add-on pricing per day and per GB.
+- Bulk price adjustment with a preview of the changes.
 </Accordion>
 
-<Accordion title="🔔 Notifications and events">
-- Configurable notification system directly in the bot interface.
-- User notifications: subscription expiring, expired, traffic exhausted, etc.
-- System notifications: bot lifecycle, bot update, new user registration, subscription activation, promocode activation, node status, first user connection, device add and remove events, etc.
-- Ability to send notifications to chat topics for sorting.
+<Accordion title="Subscriptions" icon="Layers">
+- Purchase, renewal and plan change; a limit on active subscriptions per user, or no limit.
+- Data sync with Remnawave.
+- Grant, change plan, enable and disable, reset traffic, reissue the link, squads and delete.
+- Users can reset their devices (one at a time or all at once) and their subscription link themselves, with a configurable interval between resets.
 </Accordion>
 
-<Accordion title="🧪 Trial period">
-- Configurable trial setup through the plan configurator.
-- Supports any limits.
-- Supports multiple trial plans.
-- Separate internal and external squad assignments.
-- Availability settings for users who joined via ad or referral links.
-- Support for a paid trial period.
-- Auto-disabling of the trial subscription when leaving the channel or group.
+<Accordion title="Promo codes" icon="Ticket">
+- Rewards: extra days, traffic or devices, a free subscription, a personal discount or a purchase discount.
+- Expiry, activation limit and reusable codes.
+- Availability: everyone, new, existing, invited or a list; limited to selected plans.
+- Summary: active promo codes, activations, granted days and subscriptions, discounted orders.
+- Promo code card: uses against the limit and the list of users who activated it.
+- Analytics: activation-to-payment conversion, revenue from those who activated and the amount given away in discounts.
 </Accordion>
 
-<Accordion title="👥 Referral system">
-- Detailed referral statistics.
-- Referral system configurator.
-- Reward customization: points or extra days.
-- Two-level referral support.
+<Accordion title="Discounts and loyalty" icon="BadgePercent">
+- Personal discount, one-time purchase discount and loyalty discount — the largest one applies.
+- A plan discount stacks with the personal one: the personal discount is taken from the already reduced price.
+- Loyalty program: tiers by total paid, an accounting window in months, excluding individual customers.
 </Accordion>
 
-<Accordion title="💳 Payment systems">
-- Supports multiple payment gateways: Telegram Stars, YooKassa, YooMoney, Cryptomus, Heleket, CryptoPay (CryptoBot), FreeKassa, MulenPay, PayMaster, Platega, RoboKassa, UrlPay, WATA, Valutix.
-- Payment gateway configurator.
-- Default currency setup.
-- Ability to run test payments.
-- Customizable display order for payment methods.
+<Accordion title="Referral program" icon="Share2">
+- Up to three levels in the chain.
+- Rewards: bonus days for renewing a subscription, or points — fixed or a percentage of the payment.
+- Accrual on the first payment or on every payment.
+- A reward for the invitee on sign-up through the link.
+- Points withdrawal requests, adjusting points and bonus days.
+- One referral code with links to the bot and to the web cabinet; the code can be reset.
+- Revenue from invitees for each referrer.
 </Accordion>
 
-<Accordion title="📱 Device management">
-- Allows users to manage their connected devices (only with active subscriptions and within device limits).
-- Configurable cooldown for device reset actions.
-- Ability to reset the subscription link.
+<Accordion title="Payment systems" icon="CreditCard">
+- Gateways: Telegram Stars, YooKassa, YooMoney, Cryptomus, Heleket, CryptoPay (CryptoBot), FreeKassa, MulenPay, PayMaster, Platega, RoboKassa, UrlPay, WATA, Valutix, RollyPay, AntiloPay, PayPalych, RioPay, AuraPay, SeverPay, Lava, CloudPayments, PayPear.
+- Enabling, display order and test payments.
+- Manually fulfilling a subscription for an unpaid transaction.
+- Waitlist: with payments turned off, customers are notified once they are back on.
 </Accordion>
 
-<Accordion title="🏷️ Discount system">
-- Two discount types: personal and next purchase.
-- Discounts do not stack — the largest discount is applied.
-- Discount display on purchase buttons.
+<Accordion title="Transactions" icon="Receipt">
+- The transaction list with search and filters by status, gateway, purchase type and date.
+- A summary of the selected transactions.
+- A transaction card with all its details.
 </Accordion>
 
-<Accordion title="🔐 Access mode">
-- Five access modes: full restriction, open for all, invite-only, purchase restricted, and register restricted.
-- Automatic notifications for users who attempted to purchase during restricted mode.
-- Conditional access support: rule acceptance and channel subscription.
+<Accordion title="Broadcasts" icon="Megaphone">
+- Audience by filters — subscription, plans, expiry, payments, language, source, sign-up date — or selected customers.
+- Photos, videos, GIFs and documents; buttons with a link, a promo code or a jump to the menu.
+- Posting to a Telegram channel.
+- Preview, test send and scheduled send.
+- Cancel, retry failed sends and recall sent messages.
 </Accordion>
 
-<Accordion title="⛔ Blacklist">
-- Block users by Telegram ID.
-- Bulk blocking via a list.
-- Support for auto-updated external block lists.
-- Notification for registration attempts by blacklisted users.
+<Accordion title="Bot builder" icon="LayoutList">
+- Window editor: content, buttons and navigation, custom windows.
+- Action, navigation and link buttons in three styles.
+- Banners per window and language.
+- Telegram premium emoji packs.
+- Bot commands and their order.
+- Requirements before use: accept the rules, join a channel.
+- Window import and export.
 </Accordion>
 
-<Accordion title="📈 Ad links">
-- Create links to track traffic sources and user acquisition.
-- Built-in link configurator.
-- View detailed analytics for each link.
+<Accordion title="Languages" icon="Languages">
+- Built-in Russian and English translations; more languages can be added.
+- A text editor in the dashboard: messages, notifications and errors.
+- Translation import, export and reset.
 </Accordion>
 
-<Accordion title="📊 Statistics">
-- Detailed analytics by category: users, transactions, subscriptions (plans), promocodes, referrals.
+<Accordion title="Web cabinet" icon="Globe">
+- Opens in a browser or as a Telegram Mini App.
+- Sign-in with email and password or through Telegram, Yandex and Google.
+- Purchase and renewal, promo codes, devices, the referral program and the profile.
 </Accordion>
 
-<Accordion title="👤 User editor">
-- Complete user information: profile data, stats, subscription, transactions.
-- Edit discounts.
-- Manage roles: developer, admin, user.
-- Block users.
-- Grant plan access for purchase.
-- Full subscription editor: modify limits, reset traffic, manage devices, squads, expiration date, toggle subscription status, delete, or get connection link.
-- View all banned users.
-- Search by name, username, and ID.
-- Lists of recently registered and active users.
-- Quick access via forwarded messages and system notifications.
+<Accordion title="Access and security" icon="ShieldCheck">
+- Modes: open to everyone, invite-only or closed for maintenance; sign-up and payments toggled separately.
+- Dashboard sign-in with a password, a passkey, Telegram, GitHub or OpenID Connect (SSO).
+- Administrators with a configurable set of permissions.
+- IP allowlist, active sessions, alerts on failed sign-ins and suspected session theft.
+- API tokens with the permissions and lifetime you choose.
+- API docs (Swagger and ReDoc) open from the dashboard with a one-time ticket.
 </Accordion>
 
-<Accordion title="🔄 User synchronization">
-- Automatic synchronization with the panel.
-- Edit user data both from the bot and the panel.
-- Import users from the 3X-UI panel.
-- Seamless migration from other bots.
+<Accordion title="Users" icon="UserPen">
+- User card: subscriptions, transactions, referrals and promo codes.
+- Block, delete, discounts, Telegram ID binding and ending sessions.
+- Account merging.
+- Search by name, username and Telegram ID.
 </Accordion>
 
-<Accordion title="💾 Backups">
-- Backups of the database and assets.
-- Automatic backup scheduler.
-- Notifications about backup results.
-- Manage backups directly in the dashboard.
+<Accordion title="Blacklist" icon="Ban">
+- Blocking by Telegram ID and email.
+- External lists with automatic sync.
+- Matches among registered users and bulk unblocking.
 </Accordion>
 
-<Accordion title="🎛 Main menu editor">
-- Add and modify additional buttons in the main menu.
-- Button types: link, copy text, Web App, and text message.
-- Button color setting.
-- Visibility control: by role and a "subscribers only" flag.
-- Support for media and custom emoji in buttons.
+<Accordion title="Ad links" icon="Link2">
+- One link works for both the bot and the web cabinet; links and QR codes for each channel.
+- A custom or generated code, placement cost in rubles, dollars or Stars, a note.
+- Stats: sign-ups, purchases, conversion, revenue, spend, CPA and ROI.
+- Sign-ups by day, split into the bot and the web cabinet.
+- The list of attributed users, marked by whether they bought.
+- Pausing a link while keeping its stats.
+- The user card shows which link the user came from.
 </Accordion>
 
-<Accordion title="🌐 Internationalization">
-- Ability to set unique banners for each locale and specific dialogs.
-- Support for interface translations into multiple languages.
-- Two-layer translation system: user translations (`custom.ftl`) take priority over the built-in ones and persist across updates.
-- Support for custom emoji in buttons and messages.
-- Ability to translate plan names and descriptions.
-- Automatic language detection on first registration and after subsequent changes.
+<Accordion title="Notifications" icon="Bell">
+- "Needs attention" on the home page: offline nodes, payment errors, failed backups, paid but unfulfilled subscriptions, stuck payments.
+- Channels: the dashboard, web push and Telegram.
+- Each administrator chooses which notifications to get and where.
+- Event log.
 </Accordion>
 
-<Accordion title="🪄 MiniApp">
-- Integration with the subscription page via Telegram MiniApp.
+<Accordion title="Maintenance" icon="Wrench">
+- Backups of the database and media files.
+- A schedule with copy rotation, and manual runs.
+- Downloading and deleting finished copies in the dashboard.
+- Restoring a backup through the CLI.
+- Emergency access through the CLI: resetting owner access and re-enabling password sign-in.
+- Health of the app processes and the server.
+- Telegram bot status and logs, a restart from the dashboard, a proxy for reaching Telegram.
+- Prometheus metrics on the api and worker processes.
+</Accordion>
+
+<Accordion title="Appearance" icon="Palette">
+- Brand name, accent colour, logo and favicon.
+- A background shader with its own palette, which can be turned off.
 </Accordion>
 
 </Accordions>
+
+## Where to start
+
+<Cards>
+<Card icon={<ListChecks />} title="Requirements" href="/docs/getting-started/requirements">
+What to prepare before installing
+</Card>
+<Card icon={<Download />} title="Installation" href="/docs/getting-started/installation">
+Deploying on a server step by step
+</Card>
+<Card icon={<MessagesSquare />} title="Telegram group" href="https://t.me/remna_shop" external>
+Questions and discussion
+</Card>
+</Cards>

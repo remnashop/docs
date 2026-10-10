@@ -7,8 +7,10 @@ export type Feature = {
 };
 
 export type Landing = {
-  hero: { title: string; subtitle: string; primaryCta: string; githubCta: string; telegramCta: string };
+  hero: { note: string; title: string; subtitle: string; primaryCta: string; githubCta: string; telegramCta: string };
   featuresTitle: string;
+  featuresHeading: string;
+  featuresMore: string;
   features: Feature[];
   quickStart: {
     title: string;
@@ -16,149 +18,207 @@ export type Landing = {
     docsCta: string;
     steps: { title: string; hint?: string; code?: string }[];
   };
-  screenshotsTitle: string;
-  footer: { github: string; telegram: string; note: string };
 };
 
 const ru: Landing = {
   hero: {
+    note: 'Бесплатно · открытый код · MIT',
     title: 'Готовая платформа для продажи VPN-подписок',
     subtitle:
-      'Автоматизируйте приём платежей, выдачу VPN-доступа и управление клиентами через веб-приложение или Telegram-бота.',
+      'Принимайте платежи, выдавайте VPN-доступ и управляйте клиентами автоматически. Telegram-бот и веб-кабинет для клиентов, панель управления для вас.',
     primaryCta: 'Документация',
     githubCta: 'GitHub',
     telegramCta: 'Telegram',
   },
   featuresTitle: 'Возможности',
+  featuresHeading: 'Всё, что нужно для продажи подписок',
+  featuresMore: 'Все возможности',
   features: [
     {
-      icon: 'Network',
-      title: 'Интеграция с Remnawave',
-      description: 'Любые изменения автоматически синхронизируются с панелью Remnawave в обе стороны.',
+      icon: 'ChartColumn',
+      title: 'Аналитика и мониторинг',
+      description: 'Отчёты с когортами и сравнением периодов. Ключевые метрики, состояние нод и нагрузка на сервер.',
     },
     {
       icon: 'CreditCard',
-      title: '13 платёжных шлюзов',
-      description: 'Telegram Stars, YooKassa, Cryptomus, CryptoPay и другие — доступны из коробки.',
+      title: '23 платёжных шлюза',
+      description: 'Telegram Stars, YooKassa, CryptoPay, Cryptomus, Heleket, Valutix и другие. Гибкая система ценообразования.',
     },
     {
-      icon: 'CalendarClock',
-      title: 'Подписки и триалы',
-      description: 'Пробный период, продление и льготный период после окончания подписки.',
+      icon: 'Network',
+      title: 'Интеграция с Remnawave',
+      description: 'Двусторонняя синхронизация с панелью Remnawave. Выдача, продление, устройства и сброс трафика прямо из панели управления.',
     },
     {
-      icon: 'Users',
-      title: 'Реферальная программа',
-      description: 'Вознаграждения за приглашённых пользователей, учёт начислений и аналитика.',
+      icon: 'Package',
+      title: 'Планы и триалы',
+      description: 'Конфигуратор планов с лимитами по трафику и устройствам, любой длительностью и сквадами. Бесплатный или платный пробный период.',
     },
     {
-      icon: 'LayoutDashboard',
+      icon: 'Ticket',
+      title: 'Скидки и промокоды',
+      description: 'Персональная скидка, разовая скидка на покупку и уровни лояльности. Промокоды на дни, трафик, устройства, подписку или скидку.',
+    },
+    {
+      icon: 'Share2',
+      title: 'Рефералы и реклама',
+      description: 'Трёхуровневая программа с бонусными днями или баллами и наградой приглашённому. Рекламные ссылки с аналитикой.',
+    },
+    {
+      icon: 'Megaphone',
+      title: 'Рассылки и уведомления',
+      description: 'Рассылки по сегментам аудитории с медиа и кнопками. Уведомления администраторам в панели, веб-пушем и в Telegram.',
+    },
+    {
+      icon: 'MessagesSquare',
+      title: 'Редактор бота',
+      description: 'Визуальный конструктор сообщений и кнопок бота с переменными и премиум эмодзи.',
+    },
+    {
+      icon: 'ShieldCheck',
+      title: 'Доступ и безопасность',
+      description: 'Три режима доступа, правила и подписка на канал, чёрный список. Авторизация через OAuth.',
+    },
+    {
+      icon: 'Palette',
+      title: 'Свой бренд',
+      description: 'Название, логотип, фавикон и акцентный цвет. Фоновый шейдер под ваш стиль.',
+    },
+    {
+      icon: 'KeyRound',
+      title: 'API-токены',
+      description: 'Подключайте свои сервисы через API: токены с нужными правами и сроком действия.',
+    },
+    {
+      icon: 'MonitorSmartphone',
       title: 'Веб-кабинет',
-      description: 'Личный кабинет с информацией о подписке, устройствах и истории платежей.',
-    },
-    {
-      icon: 'Languages',
-      title: 'Мультиязычность',
-      description: 'Простое редактирование переводов и поддержка нескольких языков.',
+      description:
+        'Покупка и продление подписки, устройства и история платежей. Открывается в браузере или как Mini App в Telegram.',
     },
   ],
   quickStart: {
     title: 'Быстрый старт',
-    description: 'Всего три шага до развёртывания на вашем сервере.',
+    description: 'Три шага до развёртывания на вашем сервере.',
     docsCta: 'Полная инструкция по установке',
     steps: [
       {
         title: 'Скачать конфигурацию',
         code: `mkdir -p /opt/remnashop && cd /opt/remnashop
-curl -o .env https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/.env.example
-curl -o docker-compose.yml https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/docker-compose.prod.internal.yml`,
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.internal.yml`,
       },
       {
         title: 'Заполнить .env',
-        hint: 'Домен, токен бота из BotFather, ID владельца и доступ к панели Remnawave.',
+        hint: 'Затем укажите домен и доступ к панели Remnawave: API-токен и секрет вебхука. Сохраните APP_CRYPT_KEY в надёжном месте: его нельзя менять после первого запуска.',
+        code: `sed -i "s|^APP_CRYPT_KEY=change_me$|APP_CRYPT_KEY=$(openssl rand -base64 32)|; s|^APP_JWT_SECRET=change_me$|APP_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\\n')|; s|^DATABASE_PASSWORD=change_me$|DATABASE_PASSWORD=$(openssl rand -hex 24)|; s|^# REDIS_PASSWORD=.*|REDIS_PASSWORD=$(openssl rand -hex 24)|" .env`,
       },
       {
         title: 'Запустить',
+        hint: 'Затем откройте ваш домен в браузере и создайте аккаунт владельца.',
         code: 'docker compose up -d && docker compose logs -f -t',
       },
     ],
-  },
-  screenshotsTitle: 'Как это выглядит',
-  footer: {
-    github: 'GitHub',
-    telegram: 'Telegram',
-    note: 'Открытый исходный код, лицензия MIT',
   },
 };
 
 const en: Landing = {
   hero: {
+    note: 'Free · Open source · MIT',
     title: 'A ready-made platform for selling VPN subscriptions',
     subtitle:
-      'Automate payments, VPN access and customer management through a web app or a Telegram bot.',
+      'Take payments, issue VPN access and manage customers automatically. A Telegram bot and a web cabinet for customers, a dashboard for you.',
     primaryCta: 'Documentation',
     githubCta: 'GitHub',
     telegramCta: 'Telegram',
   },
   featuresTitle: 'Features',
+  featuresHeading: 'Everything you need to sell subscriptions',
+  featuresMore: 'All features',
   features: [
     {
-      icon: 'Network',
-      title: 'Remnawave integration',
-      description: 'Any change syncs with the Remnawave panel automatically, in both directions.',
+      icon: 'ChartColumn',
+      title: 'Analytics and monitoring',
+      description: 'Reports with cohorts and period comparison. Key metrics, node status and server load.',
     },
     {
       icon: 'CreditCard',
-      title: '13 payment gateways',
-      description: 'Telegram Stars, YooKassa, Cryptomus, CryptoPay and more — available out of the box.',
+      title: '23 payment gateways',
+      description: 'Telegram Stars, YooKassa, CryptoPay, Cryptomus, Heleket, Valutix and more. A flexible pricing system.',
     },
     {
-      icon: 'CalendarClock',
-      title: 'Subscriptions and trials',
-      description: 'Trial period, renewals and a grace period after the subscription ends.',
+      icon: 'Network',
+      title: 'Remnawave integration',
+      description: 'Two-way sync with the panel. Grant, extend, manage devices and reset traffic right from the dashboard.',
     },
     {
-      icon: 'Users',
-      title: 'Referral program',
-      description: 'Rewards for invited users, payout tracking and analytics.',
+      icon: 'Package',
+      title: 'Plans and trials',
+      description: 'A plan configurator with traffic and device limits, any duration and squads. A free or paid trial period.',
     },
     {
-      icon: 'LayoutDashboard',
+      icon: 'Ticket',
+      title: 'Discounts and promo codes',
+      description: 'Personal discounts, one-time purchase discounts and loyalty tiers. Promo codes for days, traffic, devices, a subscription or a discount.',
+    },
+    {
+      icon: 'Share2',
+      title: 'Referrals and ads',
+      description: 'A three-level program with bonus days or points and an invitee reward. Ad links with analytics.',
+    },
+    {
+      icon: 'Megaphone',
+      title: 'Broadcasts and notifications',
+      description: 'Segmented broadcasts with media and buttons. Admin notifications in the dashboard, by web push and in Telegram.',
+    },
+    {
+      icon: 'MessagesSquare',
+      title: 'Bot editor',
+      description: 'A visual editor for bot messages and buttons with variables and premium emoji.',
+    },
+    {
+      icon: 'ShieldCheck',
+      title: 'Access and security',
+      description: 'Three access modes, rules and a channel requirement, a blacklist. Sign-in through OAuth.',
+    },
+    {
+      icon: 'Palette',
+      title: 'Your own brand',
+      description: 'Name, logo, favicon and accent color. A background shader to match your style.',
+    },
+    {
+      icon: 'KeyRound',
+      title: 'API tokens',
+      description: 'Connect your own services through the API: tokens with the permissions and lifetime you choose.',
+    },
+    {
+      icon: 'MonitorSmartphone',
       title: 'Web cabinet',
-      description: 'A personal dashboard with subscription details, devices and payment history.',
-    },
-    {
-      icon: 'Languages',
-      title: 'Multilingual',
-      description: 'Straightforward translation editing and support for several languages.',
+      description:
+        'Buy and renew a subscription, manage devices and see payments. Opens in a browser or as a Telegram Mini App.',
     },
   ],
   quickStart: {
     title: 'Quick start',
-    description: 'Just three steps to deploy on your server.',
+    description: 'Three steps to deploy on your server.',
     docsCta: 'Full installation guide',
     steps: [
       {
         title: 'Download the configuration',
         code: `mkdir -p /opt/remnashop && cd /opt/remnashop
-curl -o .env https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/.env.example
-curl -o docker-compose.yml https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/docker-compose.prod.internal.yml`,
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.internal.yml`,
       },
       {
         title: 'Fill in .env',
-        hint: 'Domain, the bot token from BotFather, the owner ID and access to the Remnawave panel.',
+        hint: 'Then set the domain and access to the Remnawave panel: the API token and the webhook secret. Keep APP_CRYPT_KEY somewhere safe: it must never change after the first start.',
+        code: `sed -i "s|^APP_CRYPT_KEY=change_me$|APP_CRYPT_KEY=$(openssl rand -base64 32)|; s|^APP_JWT_SECRET=change_me$|APP_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\\n')|; s|^DATABASE_PASSWORD=change_me$|DATABASE_PASSWORD=$(openssl rand -hex 24)|; s|^# REDIS_PASSWORD=.*|REDIS_PASSWORD=$(openssl rand -hex 24)|" .env`,
       },
       {
         title: 'Start it',
+        hint: 'Then open your domain in a browser and create the owner account.',
         code: 'docker compose up -d && docker compose logs -f -t',
       },
     ],
-  },
-  screenshotsTitle: 'What it looks like',
-  footer: {
-    github: 'GitHub',
-    telegram: 'Telegram',
-    note: 'Open source, MIT licensed',
   },
 };
 

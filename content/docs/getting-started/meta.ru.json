@@ -4,9 +4,8 @@
   "pages": [
     "requirements",
     "installation",
+    "web-cabinet",
     "environment",
-    "assets",
-    "custom-emoji",
     "updating"
   ]
 }

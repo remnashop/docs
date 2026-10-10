@@ -1,9 +1,9 @@
 ---
 title: Overview
-description: Choosing and preparing a reverse proxy
+icon: Route
 ---
 
-Remnashop is reached through a reverse proxy: it terminates TLS for your domain and forwards the bot API to the container.
+Remnashop is reached through a reverse proxy: it terminates TLS for your domain and forwards requests to the Remnashop containers.
 
 <Callout type="warn">
 Remnashop and its components cannot be served on a sub-path, such as `location /remnashop` or `location /remnawave`.
@@ -17,18 +17,33 @@ SSH port forwarding is not supported. Use one of the reverse proxies below.
 You need a registered domain name to continue.
 </Callout>
 
-***
+<Section title="Where the proxy points" description="Routes for the APP_DOMAIN domain" icon="Split">
 
-## Where the proxy points
+Remnashop takes requests in two containers. Telegram webhooks go to the bot container, everything else to the main container:
 
-The reverse proxy must point at the bot container on the internal address `remnashop:5000` — the Docker service name from `docker-compose.yml`, reachable only inside the container network.
+| Path               | Container                 | Serves                                                   |
+| ------------------ | ------------------------- | -------------------------------------------------------- |
+| `/api/v1/telegram` | `remnashop-telegram:5001` | Telegram webhooks                                        |
+| `/`                | `remnashop:5000`      | Dashboard, API, payment and Remnawave webhooks           |
 
-Route: `https://your-domain/api/v1` → `http://remnashop:5000`
+<Callout type="idea">
+The `remnashop` and `remnashop-telegram` names resolve only inside the Docker network. If the proxy does not run in Docker, use `127.0.0.1:5000` and `127.0.0.1:5001`.
+</Callout>
 
-***
+</Section>
 
-## Pick a proxy
+<Section title="Pick a proxy" description="Any of the three will do" icon="Route">
 
-- [Caddy](/docs/reverse-proxy/caddy) — lightweight, issues SSL certificates automatically, close to zero configuration
-- [Nginx](/docs/reverse-proxy/nginx) — the popular option, SSL certificates are issued manually
-- [Traefik](/docs/reverse-proxy/traefik) — battle-tested, configured through static and dynamic files
+<Cards>
+  <Card title="Caddy" href="/docs/reverse-proxy/caddy">
+    The shortest configuration — a good pick if you are starting from scratch
+  </Card>
+  <Card title="Nginx" href="/docs/reverse-proxy/nginx">
+    Flexible setup — handy if Nginx already runs on the server
+  </Card>
+  <Card title="Traefik" href="/docs/reverse-proxy/traefik">
+    Dynamic routing — handy if Traefik already runs on the server
+  </Card>
+</Cards>
+
+</Section>

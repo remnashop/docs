@@ -1,89 +1,78 @@
 ---
 title: Environment variables
-description: The .env file explained
+icon: SlidersHorizontal
+navTitle: .env variables
 ---
 
-## General
+<Section title="General" description="Domain, encryption and access" icon="Settings">
 
-| Variable              | Required | Default   | Description                                                                                    |
-| --------------------- | :------: | --------- | ---------------------------------------------------------------------------------------------- |
-| `APP_DOMAIN`          |     ✅    | —         | Bot domain without HTTP/HTTPS and without trailing slash. Used for webhooks.                   |
-| `APP_CRYPT_KEY`       |     ✅    | —         | Encryption key for sensitive data in the database. Must be a valid 44-character Base64 string. |
-| `APP_HOST`            |     ❌    | `0.0.0.0` | Address on which the application runs.                                                         |
-| `APP_PORT`            |     ❌    | `5000`    | Application port.                                                                              |
-| `APP_LOCALES`         |     ❌    | `ru`      | Comma-separated list of supported locales. Example: `en, ru`                                   |
-| `APP_DEFAULT_LOCALE`  |     ❌    | `ru`      | Default locale.                                                                                |
-| `APP_ORIGINS`         |     ❌    | —         | Comma-separated list of allowed CORS origins.                                                  |
-| `APP_SWAGGER_ENABLED` |     ❌    | `false`   | Whether to enable the Swagger UI and OpenAPI documentation.                                    |
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_DOMAIN`          | <Yes />  | —                       | Remnashop domain without HTTP/HTTPS and without trailing slash. The dashboard is served on it, and it is the base for Telegram and payment webhook URLs and OAuth redirects.                                                              |
+| `APP_CRYPT_KEY`       | <Yes />  | —                       | Fernet key for encrypting sensitive data in the database. Generate with `openssl rand -base64 32`. Keep a copy off the server and never change it after the first start: admin passwords stop working, the bot token, payment gateway keys and OAuth secrets can no longer be decrypted, and old backups fail the check on restore. |
+| `APP_JWT_SECRET`      | <Yes />  | —                       | Secret for signing JWTs. At least 32 characters. Generate with `openssl rand -base64 48`. Do not reuse `APP_CRYPT_KEY` here.              |
+| `APP_METRICS_ENABLED` | <No />   | `false`                 | Enable Prometheus metrics on the api and worker processes.                                                                                |
+| `APP_ORIGINS`         | <No />   | —                       | Comma-separated list of allowed CORS origins.                                                                                             |
+| `APP_SECURE_COOKIES`  | <No />   | `true`                  | Require HTTPS for session cookies. Set `false` only for local development over HTTP.                                                      |
+| `APP_WEB_CABINET_URL` | <No />   | —                       | Public URL of the web cabinet. Example: `https://cabinet.example.com`                                                                     |
 
-***
+</Section>
 
-## Bot
+<Section title="Remnawave" description="Connecting to the panel" icon="Server">
 
-| Variable                   | Required | Default | Description                                                                                                                                                                                       |
-| -------------------------- | :------: | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `BOT_TOKEN`                |     ✅    | —       | Telegram Bot API token. Obtain it from [@BotFather](https://t.me/BotFather).                                                                                                                      |
-| `BOT_SECRET_TOKEN`         |     ✅    | —       | Secret token for verifying webhooks from Telegram.                                                                                                                                                |
-| `BOT_OWNER_ID`             |     ✅    | —       | Telegram ID of the bot owner. Grants elevated permissions.                                                                                                                                        |
-| `BOT_SUPPORT_USERNAME`     |     ✅    | —       | Telegram username of the support account for deep-linking (without @).                                                                                                                            |
-| `BOT_MINI_APP`             |     ❌    | `false` | Behavior of the "connect" button: `false` — browser, `true` — WebApp, URL — open specified address.                                                                                               |
-| `BOT_RESET_WEBHOOK`        |     ❌    | `false` | Whether to reset the webhook on startup.                                                                                                                                                          |
-| `BOT_DROP_PENDING_UPDATES` |     ❌    | `false` | Whether to ignore pending updates on startup.                                                                                                                                                     |
-| `BOT_SETUP_COMMANDS`       |     ❌    | `true`  | Whether to set up bot commands on startup.                                                                                                                                                        |
-| `BOT_USE_BANNERS`          |     ❌    | `true`  | Whether to use banners in bot messages.                                                                                                                                                           |
-| `BOT_PROXY_URL`            |     ❌    | —       | SOCKS5 proxy URL for Telegram API access. Useful if the server is behind TSPU/DPI. Supports `socks5://` (local DNS) and `socks5h://` (remote DNS). Example: `socks5://user:password@1.2.3.4:1080` |
+| Variable                     | Required | Default                 | Description                                                                                                                                      |
+| ---------------------------- | :------: | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `REMNAWAVE_TOKEN`            | <Yes />  | —                       | Remnawave API token. Created in the panel: Settings → API Tokens.                                                                                |
+| `REMNAWAVE_WEBHOOK_SECRET`   | <Yes />  | —                       | Secret token for verifying webhooks from Remnawave. Must match `WEBHOOK_SECRET_HEADER` in the panel's `.env`.                                    |
+| `REMNAWAVE_HOST`             | <No />   | `http://remnawave:3000` | Host, Docker service name or full URL of the Remnawave API. Without a scheme, a domain gets `https://`, anything else `http://` and port `3000`. |
+| `REMNAWAVE_CADDY_TOKEN`      | <No />   | —                       | Token for authentication via Caddy.                                                                                                              |
+| `REMNAWAVE_COOKIE`           | <No />   | —                       | Cookie for requests in `key=value` format.                                                                                                       |
+| `REMNAWAVE_CF_CLIENT_ID`     | <No />   | —                       | Cloudflare Access Client ID.                                                                                                                     |
+| `REMNAWAVE_CF_CLIENT_SECRET` | <No />   | —                       | Cloudflare Access Client Secret.                                                                                                                 |
 
-***
+</Section>
 
-## Remnawave
+<Section title="Database" description="PostgreSQL and the connection pool" icon="Database">
 
-| Variable                     | Required | Default     | Description                                                                                                         |
-| ---------------------------- | :------: | ----------- | ------------------------------------------------------------------------------------------------------------------- |
-| `REMNAWAVE_TOKEN`            |     ✅    | —           | Remnawave API token. Created in the panel: Settings → API Tokens.                                                   |
-| `REMNAWAVE_WEBHOOK_SECRET`   |     ✅    | —           | Secret token for verifying webhooks from Remnawave. Must match `WEBHOOK_SECRET_HEADER` in the panel's `.env`.       |
-| `REMNAWAVE_HOST`             |     ❌    | `remnawave` | Hostname or Docker service name for connecting to the Remnawave API. Without HTTP/HTTPS and without trailing slash. |
-| `REMNAWAVE_CADDY_TOKEN`      |     ❌    | —           | Token for authentication via Caddy.                                                                                 |
-| `REMNAWAVE_COOKIE`           |     ❌    | —           | Cookie for requests in `key=value` format.                                                                          |
-| `REMNAWAVE_CF_CLIENT_ID`     |     ❌    | —           | Cloudflare Access Client ID.                                                                                        |
-| `REMNAWAVE_CF_CLIENT_SECRET` |     ❌    | —           | Cloudflare Access Client Secret.                                                                                    |
+| Variable                                  | Required | Default        | Description                                               |
+| ----------------------------------------- | :------: | -------------- | --------------------------------------------------------- |
+| `DATABASE_PASSWORD`                       | <Yes />  | —              | Password for connecting to PostgreSQL.                    |
+| `DATABASE_HOST`                           | <No />   | `remnashop-db` | Database host.                                            |
+| `DATABASE_PORT`                           | <No />   | `5432`         | Database port.                                            |
+| `DATABASE_NAME`                           | <No />   | `remnashop`    | Database name.                                            |
+| `DATABASE_USER`                           | <No />   | `remnashop`    | Database user.                                            |
+| `DATABASE_POOL_SIZE`                      | <No />   | `10`           | Connection pool size.                                     |
+| `DATABASE_MAX_OVERFLOW`                   | <No />   | `20`           | Maximum additional connections beyond the pool.           |
+| `DATABASE_POOL_TIMEOUT`                   | <No />   | `30`           | Timeout for waiting for a connection from the pool (sec). |
+| `DATABASE_POOL_RECYCLE`                   | <No />   | `1800`         | Connection lifetime in the pool (sec).                    |
+| `DATABASE_ECHO`                           | <No />   | `false`        | Log SQL queries.                                          |
+| `DATABASE_ECHO_POOL`                      | <No />   | `false`        | Log connection pool events.                               |
+| `DATABASE_STATEMENT_TIMEOUT_MS`           | <No />   | `60000`        | Statement timeout enforced by PostgreSQL (ms).            |
+| `DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS` | <No />   | `300000`       | Idle-in-transaction timeout enforced by PostgreSQL (ms).  |
+| `DATABASE_COMMAND_TIMEOUT_S`              | <No />   | `30`           | Command timeout in the asyncpg driver (sec).              |
+| `DATABASE_CONNECT_TIMEOUT_S`              | <No />   | `10`           | Connect timeout in the asyncpg driver (sec).              |
 
-***
+</Section>
 
-## Database
-
-| Variable                | Required | Default        | Description                                               |
-| ----------------------- | :------: | -------------- | --------------------------------------------------------- |
-| `DATABASE_PASSWORD`     |     ✅    | —              | Password for connecting to PostgreSQL.                    |
-| `DATABASE_HOST`         |     ❌    | `remnashop-db` | Database host.                                            |
-| `DATABASE_PORT`         |     ❌    | `5432`         | Database port.                                            |
-| `DATABASE_NAME`         |     ❌    | `remnashop`    | Database name.                                            |
-| `DATABASE_USER`         |     ❌    | `remnashop`    | Database user.                                            |
-| `DATABASE_POOL_SIZE`    |     ❌    | `10`           | Connection pool size.                                     |
-| `DATABASE_MAX_OVERFLOW` |     ❌    | `20`           | Maximum additional connections beyond the pool.           |
-| `DATABASE_POOL_TIMEOUT` |     ❌    | `30`           | Timeout for waiting for a connection from the pool (sec). |
-| `DATABASE_POOL_RECYCLE` |     ❌    | `1800`         | Connection lifetime in the pool (sec).                    |
-| `DATABASE_ECHO`         |     ❌    | `false`        | Log SQL queries.                                          |
-| `DATABASE_ECHO_POOL`    |     ❌    | `false`        | Log connection pool events.                               |
-
-***
-
-## Redis
+<Section title="Redis" description="Cache and queues" icon="Layers">
 
 | Variable         | Required | Default           | Description            |
 | ---------------- | :------: | ----------------- | ---------------------- |
-| `REDIS_HOST`     |     ❌    | `remnashop-redis` | Redis host.            |
-| `REDIS_PORT`     |     ❌    | `6379`            | Redis port.            |
-| `REDIS_NAME`     |     ❌    | `0`               | Redis database number. |
-| `REDIS_PASSWORD` |     ❌    | —                 | Redis password.        |
+| `REDIS_HOST`     | <No />   | `remnashop-redis` | Redis host.            |
+| `REDIS_PORT`     | <No />   | `6379`            | Redis port.            |
+| `REDIS_NAME`     | <No />   | `0`               | Redis database number. |
+| `REDIS_PASSWORD` | <No />   | —                 | Redis password.        |
 
-***
+</Section>
 
-## Logging
+<Section title="Logging" description="Level, rotation and retention" icon="ScrollText">
 
 | Variable          | Required | Default  | Description                                                 |
 | ----------------- | :------: | -------- | ----------------------------------------------------------- |
-| `LOG_TO_FILE`     |     ❌    | `true`   | Write logs to file.                                         |
-| `LOG_LEVEL`       |     ❌    | `DEBUG`  | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
-| `LOG_ROTATION`    |     ❌    | `100MB`  | Log file rotation condition. Example: `100MB` or `00:00`.   |
-| `LOG_COMPRESSION` |     ❌    | `zip`    | Compression format for archived logs.                       |
-| `LOG_RETENTION`   |     ❌    | `3 days` | Retention period for archived logs.                         |
+| `LOG_TO_FILE`     | <No />   | `true`   | Write logs to file.                                         |
+| `LOG_LEVEL`       | <No />   | `DEBUG`  | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+| `LOG_ROTATION`    | <No />   | `100MB`  | Log file rotation condition. Example: `100MB` or `00:00`.   |
+| `LOG_COMPRESSION` | <No />   | `zip`    | Compression format for archived logs.                       |
+| `LOG_RETENTION`   | <No />   | `3 days` | Retention period for archived logs.                         |
+
+</Section>

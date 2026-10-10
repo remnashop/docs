@@ -1,9 +1,9 @@
 ---
 title: Обзор
-description: Выбор и подготовка обратного прокси
+icon: Route
 ---
 
-Доступ к Remnashop идёт через обратный прокси: он терминирует TLS для вашего домена и передаёт API бота в контейнер.
+Доступ к Remnashop идёт через обратный прокси: он терминирует TLS для вашего домена и передаёт запросы в контейнеры Remnashop.
 
 <Callout type="warn">
 Remnashop и его компоненты не поддерживают работу на суб-пути — например, `location /remnashop` или `location /remnawave`.
@@ -17,18 +17,33 @@ SSH Port Forwarding не поддерживается. Используйте о
 Для продолжения вам необходимо иметь зарегистрированное доменное имя.
 </Callout>
 
-***
+<Section title="Куда указывает прокси" description="Маршруты для домена из APP_DOMAIN" icon="Split">
 
-## Куда указывает прокси
+Remnashop принимает запросы в двух контейнерах. Вебхуки Telegram идут в контейнер бота, всё остальное — в основной контейнер:
 
-Обратный прокси должен указывать на контейнер с ботом по внутреннему адресу `remnashop:5000` — это Docker-имя сервиса из `docker-compose.yml`, доступное только внутри сети контейнеров.
+| Путь               | Контейнер                 | Что обслуживает                                              |
+| ------------------ | ------------------------- | ------------------------------------------------------------ |
+| `/api/v1/telegram` | `remnashop-telegram:5001` | Вебхуки Telegram                                             |
+| `/`                | `remnashop:5000`      | Панель управления, API, вебхуки платёжных систем и Remnawave           |
 
-Маршрут: `https://your-domain/api/v1` → `http://remnashop:5000`
+<Callout type="idea">
+Имена `remnashop` и `remnashop-telegram` доступны только внутри Docker-сети. Если прокси запущен не в Docker, используйте `127.0.0.1:5000` и `127.0.0.1:5001`.
+</Callout>
 
-***
+</Section>
 
-## Выберите прокси
+<Section title="Выберите прокси" description="Подойдёт любой из трёх" icon="Route">
 
-- [Caddy](/ru/docs/reverse-proxy/caddy) — лёгкий, выпускает SSL-сертификаты автоматически, почти без настройки
-- [Nginx](/ru/docs/reverse-proxy/nginx) — популярный вариант, SSL-сертификаты выпускаются вручную
-- [Traefik](/ru/docs/reverse-proxy/traefik) — проверенный временем, настраивается статическим и динамическим файлами
+<Cards>
+  <Card title="Caddy" href="/ru/docs/reverse-proxy/caddy">
+    Самая короткая конфигурация — подойдёт, если выбираете с нуля
+  </Card>
+  <Card title="Nginx" href="/ru/docs/reverse-proxy/nginx">
+    Гибкая настройка — удобно, если Nginx уже стоит на сервере
+  </Card>
+  <Card title="Traefik" href="/ru/docs/reverse-proxy/traefik">
+    Динамическая маршрутизация — удобно, если Traefik уже стоит на сервере
+  </Card>
+</Cards>
+
+</Section>

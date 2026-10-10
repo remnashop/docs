@@ -2,9 +2,9 @@ import { GitHubIcon } from '@/components/icons/github';
 import { TelegramIcon } from '@/components/icons/telegram';
 import { gitConfig, telegramUrl } from '@/lib/shared';
 
-// Matches the styling of the sidebar page-tree items.
+// Matches the sidebar page-tree items: the dashboard's sidebar rows.
 const row =
-  'flex items-center gap-2 rounded-lg p-2 text-sm text-fd-muted-foreground transition-colors hover:bg-fd-accent/50 hover:text-fd-accent-foreground';
+  'flex h-9 items-center gap-2.5 rounded-full px-3 text-[13.5px] font-medium text-fd-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-fd-foreground';
 
 export function SocialLinks() {
   return (

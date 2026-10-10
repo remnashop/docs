@@ -10,9 +10,9 @@ const inter = Inter({
   subsets: ['latin', 'cyrillic'],
 });
 
-// Tints the browser chrome in Safari and on mobile; matches the top of the page gradient.
+// Tints the browser chrome in Safari and on mobile; matches the page canvas.
 export const viewport: Viewport = {
-  themeColor: '#0b102a',
+  themeColor: '#111111',
   colorScheme: 'dark',
 };
 

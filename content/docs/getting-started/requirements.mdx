@@ -1,40 +1,55 @@
 ---
 title: Requirements
-description: What to prepare before installing
+icon: ListChecks
 ---
 
-## Compatible Remnawave Panel versions
+<Section title="Version compatibility" description="Remnawave and web cabinet versions for each Remnashop release" icon="Network">
 
-| Remnashop Version | Remnawave Panel Version |
-| ----------------- | ----------------------- |
-| `0.7.4` — `0.8.0` | `>= 2.7.0` `< 2.8.0`    |
-| `0.7.0` — `0.7.3` | `>= 2.6.0` `< 2.7.0`    |
-| `0.6.6`           | `>= 2.3.2` `<= 2.5.7`   |
+| Remnashop         | Remnawave         | Web cabinet |
+| ----------------- | ----------------- | ----------- |
+| `1.0.0`           | `3.x.x`           | `1.0.0`     |
+| `0.7.4` – `0.8.2` | `2.7.x`           | —           |
+| `0.7.0` – `0.7.3` | `2.6.x`           | —           |
+| `0.6.6`           | `2.3.2` – `2.5.7` | —           |
 
-***
+</Section>
 
-## Hardware
+<Section title="Remnashop server" description="Minimum and recommended specs" icon="Cpu">
 
-* **OS**: **Ubuntu** or **Debian** recommended
-* **RAM**: minimum 2 GB, 4 GB recommended
-* **CPU**: minimum 2 cores, 4 cores recommended
-* **Storage**: 20 GB
+* **OS**: Ubuntu or Debian
+* **RAM**: 2 GB minimum, 4 GB recommended
+* **CPU**: 2 cores minimum, 4 recommended
+* **SSD**: 20 GB or more
 
-  <Callout type="idea">
-    Remnashop can run with lower specifications, but this is not
-    recommended. Some background processes can be resource-intensive.
-  </Callout>
+<Callout type="idea">
+Remnashop will run on a smaller server, but we don't recommend it: some background tasks are resource-intensive.
+</Callout>
 
-***
+<Callout type="warn">
+If Remnashop runs on the same server as the Remnawave panel, the requirements add up: add the [panel's requirements](https://docs.rw/install/requirements/) to these. The minimum for both is 4 GB RAM, 4 CPU cores and 40 GB SSD.
+</Callout>
 
-## Software
+</Section>
 
-Remnashop requires Docker with the Docker Compose plugin.
+<Section title="Web cabinet server" description="Minimum specs" icon="Globe">
 
-<Accordions>
-<Accordion title="Install Docker using the official script">
-```text
+* **OS**: Ubuntu or Debian
+* **RAM**: 512 MB minimum
+* **CPU**: 1 core minimum
+* **SSD**: 5 GB or more
+
+<Callout type="idea">
+The web cabinet is static files behind nginx, so it can run on the same server as Remnashop.
+</Callout>
+
+</Section>
+
+<Section title="Software" description="What to install before you start" icon="Container">
+
+Remnashop needs Docker with the Docker Compose plugin.
+
+```bash title="Install Docker with the official script"
 sudo curl -fsSL https://get.docker.com | sh
 ```
-</Accordion>
-</Accordions>
+
+</Section>

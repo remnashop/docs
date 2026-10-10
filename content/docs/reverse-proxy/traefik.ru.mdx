@@ -1,39 +1,52 @@
 ---
 title: Traefik
-description: Проксирование через Traefik
+icon: Server
 ---
 
-В этом руководстве мы используем Traefik в качестве обратного прокси для доступа к Remnashop. Мы направим доменное имя на сервер и настроим Traefik — сертификаты Traefik выпустит самостоятельно.
+В этом руководстве мы используем Traefik в качестве обратного прокси для доступа к Remnashop. Мы направим доменное имя на сервер и настроим Traefik — сертификаты Traefik выпустит самостоятельно через Let’s Encrypt.
 
 <Callout type="warn">
 Для продолжения вам необходимо иметь зарегистрированное доменное имя.
 </Callout>
 
-***
+<Section title="Способ установки" description="Где работает Remnashop относительно панели" icon="Split">
 
-## Направьте домен на сервер
+<MethodSwitch same="На одном сервере" separate="На разных серверах" />
+
+<Method only="same">
+
+Traefik работает на том же сервере, что и панель Remnawave.
+
+<Callout type="error">
+Traefik уже должен быть установлен и настроен на сервере с панелью Remnawave и остальными компонентами.
+</Callout>
+
+</Method>
+
+<Method only="separate">
+
+Remnashop работает на отдельном сервере, без панели Remnawave рядом. Traefik ставится на этот же сервер.
+
+<Callout type="error">
+На этом сервере не должно быть установлено других обратных прокси.
+</Callout>
+
+</Method>
+
+</Section>
+
+<Section title="Направьте домен на сервер" description="A-запись для домена Remnashop" icon="Globe">
 
 Узнайте IP-адрес вашего сервера. Лучше использовать статический IPv4-адрес.
 
-Теперь направьте доменное имя на этот адрес, например `my-super-panel.com` → `193.122.122.122`.
+Теперь направьте доменное имя на этот адрес, например `shop.domain.com` → `127.0.0.1`. Это можно сделать через DNS-провайдера (Cloudflare, Google Cloud и подобные) или через регистратора домена (Namecheap и подобные).
 
-Это можно сделать двумя способами:
-
-1. Через DNS-провайдера — Cloudflare, Google Cloud и подобные
-2. Через регистратора домена — Namecheap и подобные
-
-***
-
-## DNS-провайдер
-
-В Cloudflare нужно добавить запись A для IPv4 или AAAA для IPv6.
-
-Войдите в [аккаунт Cloudflare](https://dash.cloudflare.com/login) и выберите домен. В левой части страницы откройте `DNS`, затем `Records` и нажмите `Create record`.
+В Cloudflare нужно добавить запись A для IPv4 или AAAA для IPv6. Войдите в [аккаунт Cloudflare](https://dash.cloudflare.com/login) и выберите домен. В левой части страницы откройте `DNS`, затем `Records` и нажмите `Create record`.
 
 Установите `Type` в значение `A`, а `Name` — в `@`.
 
 <Callout type="idea">
-Для поддомена впишите в поле `Name` его имя — например, `bot`.
+Для поддомена впишите в поле `Name` его имя — например, `shop`.
 </Callout>
 
 Введите IP-адрес сервера в поле `IPv4 address` и нажмите `Save`. Обновление DNS-записей займёт некоторое время.
@@ -46,74 +59,20 @@ description: Проксирование через Traefik
 
 У других DNS-провайдеров интерфейс отличается, но процесс тот же.
 
-***
+</Section>
 
-## Настройка Traefik
+<Section title="Настройка Traefik" description="Статическая конфигурация и контейнер" icon="Settings">
 
-Traefik может работать на том же сервере, что и панель Remnawave, или на отдельном. Выберите подходящую вкладку.
+<Method only="same">
 
-<Tabs items={["На одном сервере","На отдельном сервере"]}>
-<Tab value="На одном сервере">
-Traefik работает на том же сервере, что и панель Remnawave.
+Если Traefik уже настроен, переходите к следующему шагу: маршруты Remnashop добавляются отдельным файлом.
 
-<Callout type="error">
-Traefik уже должен быть установлен и настроен на сервере с панелью Remnawave и остальными компонентами.
-</Callout>
+</Method>
 
-#### Новый файл динамической конфигурации
-
-Если Traefik уже настроен, создайте новый файл динамической конфигурации `remnashop.yml` в директории `/opt/remnawave/traefik/config`:
-
-```bash title="Создание remnashop.yml"
-cd /opt/remnawave/traefik/config && nano remnashop.yml
-```
-
-<Callout type="warn">
-Замените `REPLACE_WITH_YOUR_DOMAIN_BOT` на ваше доменное имя.
-</Callout>
-
-```yaml title="remnashop.yml"
-http:
-  routers:
-    remnashop:
-      rule: "Host(`REPLACE_WITH_YOUR_DOMAIN_BOT`) && PathPrefix(`/api/v1`)"
-      entrypoints:
-        - https
-      tls:
-        certResolver: letsencrypt
-      service: remnashop
-
-services:
-  remnashop:
-    loadBalancer:
-      servers:
-        - url: "http://remnashop:5000"
-```
-
-#### Перезапуск контейнеров
-
-```bash title="Перезапуск контейнеров Remnashop"
-cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
-```
-
-<Callout type="idea">
-Если всё настроено правильно, Remnashop отправит уведомление об успешном запуске в Telegram.
-</Callout>
-</Tab>
-
-<Tab value="На отдельном сервере">
-Traefik работает на другом сервере, отличном от сервера с панелью Remnawave и остальными компонентами.
-
-<Callout type="error">
-На этом сервере не должно быть установлено других обратных прокси.
-</Callout>
-
-#### Создание docker-compose.yml
-
-Создайте файл `docker-compose.yml` в директории `/opt/remnawave/traefik`:
+<Method only="separate">
 
 ```bash title="Создание docker-compose.yml"
-mkdir -p /opt/remnawave/traefik && cd /opt/remnawave/traefik && nano docker-compose.yml
+mkdir -p /opt/remnashop/traefik && cd /opt/remnashop/traefik && nano docker-compose.yml
 ```
 
 ```yaml title="docker-compose.yml"
@@ -144,12 +103,8 @@ networks:
         external: true
 ```
 
-#### Создание статической конфигурации
-
-Создайте файл `traefik.yml` в директории `/opt/remnawave/traefik`:
-
 ```bash title="Создание traefik.yml"
-cd /opt/remnawave/traefik && nano traefik.yml
+cd /opt/remnashop/traefik && nano traefik.yml
 ```
 
 <Callout type="warn">
@@ -190,48 +145,87 @@ accessLog:
   filePath: "/var/log/traefik/access.log"
 ```
 
-#### Создание динамической конфигурации
+</Method>
 
-Создайте файл `remnashop.yml` в директории `/opt/remnawave/traefik/config`:
+</Section>
+
+<Section title="Маршруты Remnashop" description="Файл динамической конфигурации" icon="FileCode">
+
+<Method only="same">
 
 ```bash title="Создание remnashop.yml"
-mkdir -p /opt/remnawave/traefik/config && cd /opt/remnawave/traefik/config && nano remnashop.yml
+cd /opt/remnawave/traefik/config && nano remnashop.yml
 ```
 
+</Method>
+
+<Method only="separate">
+
+```bash title="Создание remnashop.yml"
+mkdir -p /opt/remnashop/traefik/config && cd /opt/remnashop/traefik/config && nano remnashop.yml
+```
+
+</Method>
+
 <Callout type="warn">
-Замените `REPLACE_WITH_YOUR_DOMAIN_BOT` на ваше доменное имя.
+Замените `SHOP_DOMAIN` на домен Remnashop — значение `APP_DOMAIN`.
 </Callout>
 
 ```yaml title="remnashop.yml"
 http:
   routers:
+    remnashop-telegram:
+      rule: "Host(`SHOP_DOMAIN`) && Path(`/api/v1/telegram`)"
+      entrypoints:
+        - https
+      tls:
+        certResolver: letsencrypt
+      service: remnashop-telegram
     remnashop:
-      rule: "Host(`REPLACE_WITH_YOUR_DOMAIN_BOT`) && PathPrefix(`/api/v1`)"
+      rule: "Host(`SHOP_DOMAIN`)"
       entrypoints:
         - https
       tls:
         certResolver: letsencrypt
       service: remnashop
 
-services:
-  remnashop:
-    loadBalancer:
-      servers:
-        - url: "http://remnashop:5000"
-```
-
-#### Запуск контейнеров
-
-```bash title="Запуск Traefik"
-docker compose up -d && docker compose logs -f -t
-```
-
-```bash title="Перезапуск контейнеров Remnashop"
-cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
+  services:
+    remnashop-telegram:
+      loadBalancer:
+        servers:
+          - url: "http://remnashop-telegram:5001"
+    remnashop:
+      loadBalancer:
+        servers:
+          - url: "http://remnashop:5000"
 ```
 
 <Callout type="idea">
-Если всё настроено правильно, Remnashop отправит уведомление об успешном запуске в Telegram.
+Вебхуки Telegram уходят в контейнер `remnashop-telegram`, всё остальное — в `remnashop`. Подробнее — в [обзоре](/ru/docs/reverse-proxy).
 </Callout>
-</Tab>
-</Tabs>
+
+</Section>
+
+<Section title="Запуск Traefik" description="Применение конфигурации" icon="Play">
+
+<Method only="same">
+
+Traefik следит за папкой `config` и подхватит `remnashop.yml` сам — перезапуск не нужен.
+
+</Method>
+
+<Method only="separate">
+
+```bash title="Запуск Traefik"
+cd /opt/remnashop/traefik && docker compose up -d && docker compose logs -f -t
+```
+
+</Method>
+
+</Section>
+
+<Section title="Проверка" description="Панель управления открывается по домену" icon="CircleCheck">
+
+Откройте в браузере `https://shop.domain.com` — должна открыться панель управления. Если так, вернитесь к шагу [«Первый вход»](/ru/docs/getting-started/installation#шаг-8-первый-вход) и создайте аккаунт владельца.
+
+</Section>

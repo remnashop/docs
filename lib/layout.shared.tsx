@@ -8,7 +8,7 @@ export function baseOptions(lang: string): BaseLayoutProps {
   return {
     nav: {
       title: (
-        <span className="inline-flex items-center gap-0.5 text-lg font-medium">
+        <span className="inline-flex items-center gap-2 text-[15px] font-bold tracking-tight">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="" className="size-8 shrink-0" />
           {appName}
@@ -23,10 +23,6 @@ export function baseOptions(lang: string): BaseLayoutProps {
     links: [
       {
         text: lang === 'ru' ? 'Документация' : 'Documentation',
-        url: withLocale(lang, '/docs/overview/introduction'),
-      },
-      {
-        text: lang === 'ru' ? 'Демо' : 'Demo',
         url: withLocale(lang, '/docs/overview/introduction'),
       },
       {
@@ -53,8 +49,25 @@ export function baseOptions(lang: string): BaseLayoutProps {
 // The docs sidebar lists every page itself, so the landing's links would only duplicate
 // it as a vertical list. GitHub and Telegram move to the sidebar footer instead.
 export function docsOptions(lang: string): BaseLayoutProps {
+  const base = baseOptions(lang);
   return {
-    ...baseOptions(lang),
+    ...base,
+    nav: {
+      ...base.nav,
+      // The dashboard sidebar's brand block: the mark, the name and a tagline under it.
+      title: (
+        <span className="inline-flex items-center gap-2.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo.svg" alt="" className="size-8 shrink-0" />
+          <span className="flex flex-col">
+            <span className="text-[15px] leading-[22px] font-bold tracking-tight">{appName}</span>
+            <span className="text-fd-muted-foreground text-[11px] leading-4 font-medium">
+              {lang === 'ru' ? 'Документация' : 'Documentation'}
+            </span>
+          </span>
+        </span>
+      ),
+    },
     links: [],
   };
 }

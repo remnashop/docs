@@ -1,6 +1,6 @@
 ---
 title: Caddy
-description: Проксирование через Caddy
+icon: Server
 ---
 
 В этом руководстве мы используем Caddy в качестве обратного прокси для доступа к Remnashop. Мы направим доменное имя на сервер и настроим Caddy — сертификаты Caddy выпустит самостоятельно.
@@ -9,31 +9,44 @@ description: Проксирование через Caddy
 Для продолжения вам необходимо иметь зарегистрированное доменное имя.
 </Callout>
 
-***
+<Section title="Способ установки" description="Где работает Remnashop относительно панели" icon="Split">
 
-## Направьте домен на сервер
+<MethodSwitch same="На одном сервере" separate="На разных серверах" />
+
+<Method only="same">
+
+Caddy работает на том же сервере, что и панель Remnawave.
+
+<Callout type="error">
+Caddy уже должен быть установлен и настроен на сервере с панелью Remnawave и остальными компонентами.
+</Callout>
+
+</Method>
+
+<Method only="separate">
+
+Remnashop работает на отдельном сервере, без панели Remnawave рядом. Caddy ставится на этот же сервер.
+
+<Callout type="error">
+На этом сервере не должно быть установлено других обратных прокси.
+</Callout>
+
+</Method>
+
+</Section>
+
+<Section title="Направьте домен на сервер" description="A-запись для домена Remnashop" icon="Globe">
 
 Узнайте IP-адрес вашего сервера. Лучше использовать статический IPv4-адрес.
 
-Теперь направьте доменное имя на этот адрес, например `my-super-panel.com` → `193.122.122.122`.
+Теперь направьте доменное имя на этот адрес, например `shop.domain.com` → `127.0.0.1`. Это можно сделать через DNS-провайдера (Cloudflare, Google Cloud и подобные) или через регистратора домена (Namecheap и подобные).
 
-Это можно сделать двумя способами:
-
-1. Через DNS-провайдера — Cloudflare, Google Cloud и подобные
-2. Через регистратора домена — Namecheap и подобные
-
-***
-
-## DNS-провайдер
-
-В Cloudflare нужно добавить запись A для IPv4 или AAAA для IPv6.
-
-Войдите в [аккаунт Cloudflare](https://dash.cloudflare.com/login) и выберите домен. В левой части страницы откройте `DNS`, затем `Records` и нажмите `Create record`.
+В Cloudflare нужно добавить запись A для IPv4 или AAAA для IPv6. Войдите в [аккаунт Cloudflare](https://dash.cloudflare.com/login) и выберите домен. В левой части страницы откройте `DNS`, затем `Records` и нажмите `Create record`.
 
 Установите `Type` в значение `A`, а `Name` — в `@`.
 
 <Callout type="idea">
-Для поддомена впишите в поле `Name` его имя — например, `bot`.
+Для поддомена впишите в поле `Name` его имя — например, `shop`.
 </Callout>
 
 Введите IP-адрес сервера в поле `IPv4 address` и нажмите `Save`. Обновление DNS-записей займёт некоторое время.
@@ -46,31 +59,17 @@ description: Проксирование через Caddy
 
 У других DNS-провайдеров интерфейс отличается, но процесс тот же.
 
-***
+</Section>
 
-## Настройка Caddy
+<Section title="Настройка Caddyfile" description="Маршруты к контейнерам Remnashop" icon="FileCode">
 
-Caddy может работать на том же сервере, что и панель Remnawave, или на отдельном. Выберите подходящую вкладку.
-
-<Tabs items={["На одном сервере","На отдельном сервере"]}>
-<Tab value="На одном сервере">
-Caddy работает на том же сервере, что и панель Remnawave.
-
-<Callout type="error">
-Caddy уже должен быть установлен и настроен на сервере с панелью Remnawave и остальными компонентами.
-</Callout>
-
-#### Подготовка Caddyfile
+<Method only="same">
 
 Если Caddy уже настроен, достаточно добавить новый блок сайта в Caddyfile:
 
 ```bash title="Редактирование Caddyfile"
 cd /opt/remnawave/caddy && nano Caddyfile
 ```
-
-<Callout type="warn">
-Замените `BOT_DOMAIN` на ваше доменное имя.
-</Callout>
 
 <Callout type="error">
 Не заменяйте существующую конфигурацию полностью — только добавьте в неё блок сайта для Remnashop.
@@ -85,9 +84,15 @@ https://REPLACE_WITH_YOUR_DOMAIN {
 https://SUBSCRIPTION_PAGE_DOMAIN {
         reverse_proxy * http://remnawave-subscription-page:3010
 }
-# REMNASHOP (всё API v1 → remnashop:5000)
-https://BOT_DOMAIN {
-        reverse_proxy /api/v1/* http://remnashop:5000
+# REMNASHOP
+https://SHOP_DOMAIN {
+        encode
+        handle /api/v1/telegram {
+                reverse_proxy http://remnashop-telegram:5001
+        }
+        handle {
+                reverse_proxy http://remnashop:5000
+        }
 }
 # CATCH-ALL
 :443 {
@@ -96,41 +101,23 @@ https://BOT_DOMAIN {
 }
 ```
 
-#### Перезапуск контейнеров
+</Method>
 
-```bash title="Перезапуск контейнера Caddy"
-cd /opt/remnawave/caddy && docker compose down && docker compose up -d && docker compose logs -f
-```
-
-```bash title="Перезапуск контейнеров Remnashop"
-cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
-```
-
-<Callout type="idea">
-Если всё настроено правильно, Remnashop отправит уведомление об успешном запуске в Telegram.
-</Callout>
-</Tab>
-
-<Tab value="На отдельном сервере">
-Caddy работает на другом сервере, отличном от сервера с панелью Remnawave и остальными компонентами.
-
-<Callout type="error">
-На этом сервере не должно быть установлено других обратных прокси.
-</Callout>
-
-#### Создание Caddyfile
+<Method only="separate">
 
 ```bash title="Создание Caddyfile"
-mkdir -p /opt/remnawave/caddy && cd /opt/remnawave/caddy && nano Caddyfile
+mkdir -p /opt/remnashop/caddy && cd /opt/remnashop/caddy && nano Caddyfile
 ```
 
-<Callout type="warn">
-Замените `REPLACE_WITH_YOUR_DOMAIN` на ваше доменное имя.
-</Callout>
-
 ```text title="Caddyfile"
-https://REPLACE_WITH_YOUR_DOMAIN {
-        reverse_proxy /api/v1/* http://remnashop:5000
+https://SHOP_DOMAIN {
+        encode
+        handle /api/v1/telegram {
+                reverse_proxy http://remnashop-telegram:5001
+        }
+        handle {
+                reverse_proxy http://remnashop:5000
+        }
 }
 :443 {
     tls internal
@@ -138,10 +125,32 @@ https://REPLACE_WITH_YOUR_DOMAIN {
 }
 ```
 
-#### Создание docker-compose.yml
+</Method>
+
+<Callout type="warn">
+Замените `SHOP_DOMAIN` на домен Remnashop — значение `APP_DOMAIN`.
+</Callout>
+
+<Callout type="idea">
+Вебхуки Telegram уходят в контейнер `remnashop-telegram`, всё остальное — в `remnashop`. Подробнее — в [обзоре](/ru/docs/reverse-proxy).
+</Callout>
+
+</Section>
+
+<Section title="Запуск Caddy" description="Применение конфигурации" icon="Play">
+
+<Method only="same">
+
+```bash title="Перезапуск контейнера Caddy"
+cd /opt/remnawave/caddy && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+</Method>
+
+<Method only="separate">
 
 ```bash title="Создание docker-compose.yml"
-cd /opt/remnawave/caddy && nano docker-compose.yml
+cd /opt/remnashop/caddy && nano docker-compose.yml
 ```
 
 ```yaml title="docker-compose.yml"
@@ -171,18 +180,16 @@ volumes:
         name: caddy-ssl-data
 ```
 
-#### Запуск контейнеров
-
 ```bash title="Запуск Caddy"
 docker compose up -d && docker compose logs -f -t
 ```
 
-```bash title="Перезапуск контейнеров Remnashop"
-cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
-```
+</Method>
 
-<Callout type="idea">
-Если всё настроено правильно, Remnashop отправит уведомление об успешном запуске в Telegram.
-</Callout>
-</Tab>
-</Tabs>
+</Section>
+
+<Section title="Проверка" description="Панель управления открывается по домену" icon="CircleCheck">
+
+Откройте в браузере `https://shop.domain.com` — должна открыться панель управления. Если так, вернитесь к шагу [«Первый вход»](/ru/docs/getting-started/installation#шаг-8-первый-вход) и создайте аккаунт владельца.
+
+</Section>

@@ -1,46 +1,78 @@
+import Link from 'next/link';
 import {
-  CalendarClock,
+  ArrowRight,
+  ChartColumn,
   CreditCard,
-  Languages,
-  LayoutDashboard,
+  KeyRound,
+  Megaphone,
+  MessagesSquare,
+  MonitorSmartphone,
   Network,
-  Users,
+  Package,
+  Palette,
+  Share2,
+  ShieldCheck,
+  Ticket,
   type LucideIcon,
 } from 'lucide-react';
-import { getLanding } from '@/lib/landing-content';
+import { getDocsHref, getLanding, type Feature } from '@/lib/landing-content';
 import { RevealOnScroll } from '@/components/landing/reveal-on-scroll';
 
 const icons: Record<string, LucideIcon> = {
-  Network,
+  ChartColumn,
   CreditCard,
-  CalendarClock,
-  Users,
-  LayoutDashboard,
-  Languages,
+  KeyRound,
+  Megaphone,
+  MessagesSquare,
+  MonitorSmartphone,
+  Network,
+  Package,
+  Palette,
+  Share2,
+  ShieldCheck,
+  Ticket,
 };
 
-export function Features({ lang }: { lang: string }) {
-  const { featuresTitle, features } = getLanding(lang);
+function Card({ item }: { item: Feature }) {
+  const Icon = icons[item.icon];
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-4 py-16">
-      <h2 className="mb-8 text-center text-2xl font-semibold">{featuresTitle}</h2>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-reveal-group>
-        {features.map((feature) => {
-          const Icon = icons[feature.icon];
+    <div className="tile flex flex-col gap-3 p-5" data-reveal>
+      <div className="flex items-center gap-3">
+        {/* The dashboard's KpiTile icon: a 40px rounded square tinted with the accent. */}
+        <span className="bg-fd-primary/10 text-fd-primary flex size-10 shrink-0 items-center justify-center rounded-xl">
+          {Icon ? <Icon className="size-5" /> : null}
+        </span>
+        <h3 className="text-[15px] font-semibold tracking-tight">{item.title}</h3>
+      </div>
+      <p className="text-fd-muted-foreground text-sm text-pretty">{item.description}</p>
+    </div>
+  );
+}
 
-          return (
-            <div key={feature.title} className="panel p-6" data-reveal>
-              <span className="border-fd-border bg-fd-primary/10 text-fd-primary inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium tracking-wider uppercase">
-                {Icon ? <Icon className="size-3.5" /> : null}
-                {feature.title}
-              </span>
-              <p className="text-fd-muted-foreground mt-4 text-sm text-pretty">
-                {feature.description}
-              </p>
-            </div>
-          );
-        })}
+export function Features({ lang }: { lang: string }) {
+  const { featuresTitle, featuresHeading, featuresMore, features } = getLanding(lang);
+
+  return (
+    <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:py-24">
+      <div className="glass p-6 sm:p-10">
+        <span className="text-fd-primary text-[11px] font-semibold tracking-wide uppercase">{featuresTitle}</span>
+        <div className="mt-2 mb-8 flex flex-wrap items-end justify-between gap-4">
+          <h2 className="max-w-xl text-2xl font-bold tracking-tight text-balance sm:text-3xl">{featuresHeading}</h2>
+          {/* The introduction lists every feature in full; the cards are the highlights. */}
+          <Link
+            href={getDocsHref(lang)}
+            className="bg-fd-accent text-fd-primary hover:bg-fd-primary/20 inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-sm font-medium transition-colors"
+          >
+            {featuresMore}
+            <ArrowRight className="size-4" />
+          </Link>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" data-reveal-group>
+          {features.map((item) => (
+            <Card key={item.title} item={item} />
+          ))}
+        </div>
       </div>
       <RevealOnScroll />
     </section>

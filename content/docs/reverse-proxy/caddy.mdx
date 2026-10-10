@@ -1,6 +1,6 @@
 ---
 title: Caddy
-description: Proxying with Caddy
+icon: Server
 ---
 
 In this guide we will use Caddy as a reverse proxy to reach Remnashop. We will point a domain name at the server and configure Caddy — the certificates are issued by Caddy itself.
@@ -9,31 +9,44 @@ In this guide we will use Caddy as a reverse proxy to reach Remnashop. We will p
 You need a registered domain name to continue.
 </Callout>
 
-***
+<Section title="Installation method" description="Where Remnashop runs relative to the panel" icon="Split">
 
-## Point your domain to the server
+<MethodSwitch same="Same server" separate="Separate servers" />
+
+<Method only="same">
+
+Caddy runs on the same server as the Remnawave panel.
+
+<Callout type="error">
+Caddy must already be installed and configured on the server that runs the Remnawave panel and the other components.
+</Callout>
+
+</Method>
+
+<Method only="separate">
+
+Remnashop runs on its own server, without the Remnawave panel next to it. Caddy goes on that same server.
+
+<Callout type="error">
+No other reverse proxy may be installed on this server.
+</Callout>
+
+</Method>
+
+</Section>
+
+<Section title="Point your domain to the server" description="An A record for the Remnashop domain" icon="Globe">
 
 Check your server's IP address. A static IPv4 address works best.
 
-Now point your domain name at that address, for example `my-super-panel.com` → `193.122.122.122`.
+Now point your domain name at that address, for example `shop.domain.com` → `127.0.0.1`. You can do it through a DNS provider (Cloudflare, Google Cloud and the like) or through your registrar (Namecheap and the like).
 
-There are two ways to do it:
-
-1. Through a DNS provider — Cloudflare, Google Cloud and the like
-2. Through your registrar — Namecheap and the like
-
-***
-
-## DNS provider
-
-With Cloudflare you add an A record for IPv4 or an AAAA record for IPv6.
-
-Log in to [your Cloudflare account](https://dash.cloudflare.com/login) and pick the domain. In the left column open `DNS`, then `Records`, and click `Create record`.
+With Cloudflare you add an A record for IPv4 or an AAAA record for IPv6. Log in to [your Cloudflare account](https://dash.cloudflare.com/login) and pick the domain. In the left column open `DNS`, then `Records`, and click `Create record`.
 
 Set `Type` to `A` and `Name` to `@`.
 
 <Callout type="idea">
-For a subdomain, put its name — `bot`, for instance — in the `Name` field instead.
+For a subdomain, put its name — `shop`, for instance — in the `Name` field instead.
 </Callout>
 
 Enter your server's IP address in the `IPv4 address` field and click `Save`. DNS records take a while to propagate.
@@ -46,31 +59,17 @@ The yellow cloud (domain proxied through Cloudflare) and the grey cloud (domain 
 
 Other DNS providers look different, but the process is the same.
 
-***
+</Section>
 
-## Caddy configuration
+<Section title="Configure the Caddyfile" description="Routes to the Remnashop containers" icon="FileCode">
 
-Caddy can run on the same server as the Remnawave panel or on a separate one. Pick the matching tab.
-
-<Tabs items={["Same server","Separate server"]}>
-<Tab value="Same server">
-Caddy runs on the same server as the Remnawave panel.
-
-<Callout type="error">
-Caddy must already be installed and configured on the server that runs the Remnawave panel and the other components.
-</Callout>
-
-#### Prepare the Caddyfile
+<Method only="same">
 
 With Caddy already configured, you only add a new site block to the Caddyfile:
 
 ```bash title="Edit Caddyfile"
 cd /opt/remnawave/caddy && nano Caddyfile
 ```
-
-<Callout type="warn">
-Replace `BOT_DOMAIN` with your domain name.
-</Callout>
 
 <Callout type="error">
 Do not replace the existing configuration — only add the Remnashop site block to it.
@@ -85,9 +84,15 @@ https://REPLACE_WITH_YOUR_DOMAIN {
 https://SUBSCRIPTION_PAGE_DOMAIN {
         reverse_proxy * http://remnawave-subscription-page:3010
 }
-# REMNASHOP (all API v1 → remnashop:5000)
-https://BOT_DOMAIN {
-        reverse_proxy /api/v1/* http://remnashop:5000
+# REMNASHOP
+https://SHOP_DOMAIN {
+        encode
+        handle /api/v1/telegram {
+                reverse_proxy http://remnashop-telegram:5001
+        }
+        handle {
+                reverse_proxy http://remnashop:5000
+        }
 }
 # CATCH-ALL
 :443 {
@@ -96,41 +101,23 @@ https://BOT_DOMAIN {
 }
 ```
 
-#### Restart the containers
+</Method>
 
-```bash title="Restart the Caddy container"
-cd /opt/remnawave/caddy && docker compose down && docker compose up -d && docker compose logs -f
-```
-
-```bash title="Restart the Remnashop containers"
-cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
-```
-
-<Callout type="idea">
-If everything is configured correctly, Remnashop sends a startup notification in Telegram.
-</Callout>
-</Tab>
-
-<Tab value="Separate server">
-Caddy runs on a different server than the Remnawave panel and the other components.
-
-<Callout type="error">
-No other reverse proxy may be installed on this server.
-</Callout>
-
-#### Create the Caddyfile
+<Method only="separate">
 
 ```bash title="Create Caddyfile"
-mkdir -p /opt/remnawave/caddy && cd /opt/remnawave/caddy && nano Caddyfile
+mkdir -p /opt/remnashop/caddy && cd /opt/remnashop/caddy && nano Caddyfile
 ```
 
-<Callout type="warn">
-Replace `REPLACE_WITH_YOUR_DOMAIN` with your domain name.
-</Callout>
-
 ```text title="Caddyfile"
-https://REPLACE_WITH_YOUR_DOMAIN {
-        reverse_proxy /api/v1/* http://remnashop:5000
+https://SHOP_DOMAIN {
+        encode
+        handle /api/v1/telegram {
+                reverse_proxy http://remnashop-telegram:5001
+        }
+        handle {
+                reverse_proxy http://remnashop:5000
+        }
 }
 :443 {
     tls internal
@@ -138,10 +125,32 @@ https://REPLACE_WITH_YOUR_DOMAIN {
 }
 ```
 
-#### Create docker-compose.yml
+</Method>
+
+<Callout type="warn">
+Replace `SHOP_DOMAIN` with the Remnashop domain — the `APP_DOMAIN` value.
+</Callout>
+
+<Callout type="idea">
+Telegram webhooks go to the `remnashop-telegram` container, everything else to `remnashop`. More in the [overview](/docs/reverse-proxy).
+</Callout>
+
+</Section>
+
+<Section title="Start Caddy" description="Applying the configuration" icon="Play">
+
+<Method only="same">
+
+```bash title="Restart the Caddy container"
+cd /opt/remnawave/caddy && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+</Method>
+
+<Method only="separate">
 
 ```bash title="Create docker-compose.yml"
-cd /opt/remnawave/caddy && nano docker-compose.yml
+cd /opt/remnashop/caddy && nano docker-compose.yml
 ```
 
 ```yaml title="docker-compose.yml"
@@ -171,18 +180,16 @@ volumes:
         name: caddy-ssl-data
 ```
 
-#### Start the containers
-
 ```bash title="Start Caddy"
 docker compose up -d && docker compose logs -f -t
 ```
 
-```bash title="Restart the Remnashop containers"
-cd /opt/remnashop && docker compose down && docker compose up -d && docker compose logs -f
-```
+</Method>
 
-<Callout type="idea">
-If everything is configured correctly, Remnashop sends a startup notification in Telegram.
-</Callout>
-</Tab>
-</Tabs>
+</Section>
+
+<Section title="Check" description="The dashboard opens on the domain" icon="CircleCheck">
+
+Open `https://shop.domain.com` in your browser — the dashboard page should load. If it does, go back to the [First sign-in](/docs/getting-started/installation#step-8-first-sign-in) step and create the owner account.
+
+</Section>

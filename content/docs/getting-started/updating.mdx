@@ -1,22 +1,28 @@
 ---
 title: Updating
-description: Moving to a new version
+icon: RefreshCw
 ---
 
-To update and restart the bot, run the following command:
+<Callout type="idea">
+Before updating, check the [changelog](/docs/overview/whats-new) for changes that may need action on your side.
+</Callout>
 
-```bash title="Update the bot"
+<Section title="Remnashop" description="Bot, dashboard and worker" icon="Package">
+
+```bash title="Update and restart"
 cd /opt/remnashop && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
 ```
 
-The built-in assets (default translations and banners) ship inside the Docker image and are updated automatically together with the bot — you no longer need to reset them manually.
+```bash title="Clean unused images"
+docker image prune
+```
 
-On startup after an update, the bot:
+</Section>
 
-* Picks up the latest built-in translations and banners from the image.
-* Keeps your custom translations (`custom.ftl`) and banners unchanged.
-* When upgrading from a version below 0.8, moves the old translation files into a `.legacy/` folder — only `custom.ftl` remains in the user volume.
+<Section title="Web cabinet" description="The user cabinet in the browser" icon="Globe">
 
-<Callout>
-Your overrides in `custom.ftl` and your own banners in `assets/` are never touched by an update. See the [Assets](/docs/getting-started/assets) page for details.
-</Callout>
+```bash title="Update and restart"
+cd /opt/remnashop/cabinet && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+</Section>

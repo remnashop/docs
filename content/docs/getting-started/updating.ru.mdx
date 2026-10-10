@@ -1,22 +1,28 @@
 ---
 title: Обновление
-description: Переход на новую версию
+icon: RefreshCw
 ---
 
-Для обновления и перезапуска бота выполните следующую команду:
+<Callout type="idea">
+Перед обновлением ознакомьтесь с [историей изменений](/ru/docs/overview/whats-new) — там описаны изменения, которые могут потребовать ваших действий.
+</Callout>
 
-```bash title="Обновление бота"
+<Section title="Remnashop" description="Бот, панель управления и воркер" icon="Package">
+
+```bash title="Обновление и перезапуск"
 cd /opt/remnashop && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
 ```
 
-Встроенные ассеты (переводы и баннеры по умолчанию) поставляются внутри Docker-образа и обновляются автоматически вместе с ботом — сбрасывать их вручную больше не нужно.
+```bash title="Очистка неиспользуемых образов"
+docker image prune
+```
 
-При запуске после обновления бот:
+</Section>
 
-* Подхватывает актуальные встроенные переводы и баннеры из образа.
-* Сохраняет ваши пользовательские переводы (`custom.ftl`) и баннеры без изменений.
-* При обновлении с версии ниже 0.8 переносит старые файлы переводов в папку `.legacy/` — в пользовательском томе остаётся только `custom.ftl`.
+<Section title="Веб-кабинет" description="Кабинет пользователя в браузере" icon="Globe">
 
-<Callout>
-Ваши переопределения в `custom.ftl` и собственные баннеры в `assets/` никогда не затрагиваются обновлением. Подробнее — на странице [Ассеты](/ru/docs/getting-started/assets).
-</Callout>
+```bash title="Обновление и перезапуск"
+cd /opt/remnashop/cabinet && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
+```
+
+</Section>

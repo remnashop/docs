@@ -1,395 +1,289 @@
 ---
 title: Installation
-description: Deploying with Docker Compose
+icon: Download
 ---
 
 <Callout type="warn">
 Before you begin, check the [requirements](/docs/getting-started/requirements) page.
 </Callout>
 
-***
+<Section title="Install Docker" description="Docker and the Docker Compose plugin" icon="Container">
 
-## Install Docker
+Install Docker if it is not already installed.
 
-Install `Docker` if it is not already installed.
-
-<Accordions>
-<Accordion title="Install Docker">
-```text
+```bash title="Install Docker with the official script"
 sudo curl -fsSL https://get.docker.com | sh
 ```
-</Accordion>
-</Accordions>
 
-***
+</Section>
 
-## Installation Options
+<Section title="Installation method" description="Where Remnashop runs relative to the panel" icon="Split">
 
-Choose the installation method based on your configuration:
+<MethodSwitch same="Same server" separate="Separate servers" />
 
-<Tabs items={["Same server","Separate servers"]}>
-<Tab value="Same server">
-Use this method if the bot will run on the same server as the Remnawave panel. The bot connects to Remnawave through the internal Docker network.
+<Method only="same">
 
-#### Step 1: Create the project directory
+Use this method if Remnashop will run on the same server as the Remnawave panel. Remnashop connects to Remnawave through the internal Docker network.
 
-```bash title="Create project directory"
-    mkdir /opt/remnashop && cd /opt/remnashop
+</Method>
+
+<Method only="separate">
+
+Use this method if Remnashop will run on a different server from the Remnawave panel. Remnashop connects to Remnawave through an external HTTPS URL.
+
+</Method>
+
+</Section>
+
+<Section title="Step 1: Create the project directory" description="A directory for the Remnashop files" icon="FolderPlus">
+
+```bash title="Create the project directory"
+mkdir /opt/remnashop && cd /opt/remnashop
 ```
 
-#### Step 2: Download required files
+</Section>
 
-Download the `docker-compose.yml` and `.env` files by running the following commands:
+<Section title="Step 2: Download the required files" description="docker-compose.yml and .env" icon="Download">
 
-```bash title="Get .env file"
-    curl -o .env https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/.env.example
+<Method only="same">
+
+```bash title="Get docker-compose.yml (Remnashop and the panel on the same server)"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.internal.yml
 ```
 
-```bash title="Get docker-compose.yml file (bot and panel on the same server)"
-    curl -o docker-compose.yml https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/docker-compose.prod.internal.yml
+</Method>
+
+<Method only="separate">
+
+```bash title="Get docker-compose.yml (Remnashop and the panel on separate servers)"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.external.yml
 ```
 
-#### Step 3: Generate secrets
+</Method>
 
-Generate secret keys by running the following commands:
+```bash title="Get the .env file"
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example
+```
+
+</Section>
+
+<Section title="Step 3: Generate secrets" description="Encryption keys and passwords" icon="KeyRound">
+
+Generate the keys and passwords by running the following commands:
 
 ```bash title="Generate secret keys"
-    sed -i "s|^APP_CRYPT_KEY=.*|APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')|" .env && sed -i "s|^BOT_SECRET_TOKEN=.*|BOT_SECRET_TOKEN=$(openssl rand -hex 64 | tr -d '\n')|" .env
+sed -i "s|^APP_CRYPT_KEY=change_me$|APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')|" .env && sed -i "s|^APP_JWT_SECRET=change_me$|APP_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')|" .env
 ```
 
 ```bash title="Generate passwords"
-    sed -i "s|^DATABASE_PASSWORD=.*|DATABASE_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env && sed -i "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env
+sed -i "s|^DATABASE_PASSWORD=change_me$|DATABASE_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env && sed -i "s|^# REDIS_PASSWORD=.*|REDIS_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env
 ```
 
-#### Step 4: Configure the .env file
+<Callout type="warn">
+Keep a copy of `APP_CRYPT_KEY` off this server, next to your database backups, and never change it after the first start. If the key is lost or changed, passwords, the bot token, OAuth secrets and payment gateway credentials stop working, and existing backups can no longer be restored.
+</Callout>
+
+</Section>
+
+<Section title="Step 4: Configure the .env file" description="Domain, keys and the Remnawave connection" icon="FileCog">
 
 <Callout type="idea">
-For more information about environment variables, see the [Environment Variables](/docs/getting-started/environment) page.
+More details on environment variables are on the [Environment variables](/docs/getting-started/environment) page.
 </Callout>
 
 Open the `.env` file:
 
-```bash title="Edit .env file"
-    cd /opt/remnashop && nano .env
+```bash title="Edit the .env file"
+cd /opt/remnashop && nano .env
 ```
 
+<Method only="same">
+
 ```bash title=".env file contents"
-    # Domain through which your bot is publicly accessible.
-    # Used for receiving webhooks from services (e.g., Telegram, payment systems).
-    # !!! WARNING: Specify domain WITHOUT HTTP/HTTPS and WITHOUT trailing slash.
-    APP_DOMAIN=change_me
+# Domain through which Remnashop is publicly accessible. The dashboard is served on it,
+# and webhooks arrive at it (Telegram, payment systems, Remnawave).
+# !!! WARNING: Specify the domain WITHOUT HTTP/HTTPS and WITHOUT a trailing slash.
+APP_DOMAIN=change_me
 
-    # Encryption key for securing sensitive data (e.g., payment tokens) in the database.
-    # !!! CRITICALLY IMPORTANT: Never share this token publicly.
-    APP_CRYPT_KEY=change_me # SHOULD ALREADY BE SET IN STEP 3
+# Encryption key for sensitive data (bot token, OAuth secrets, payment gateway credentials) in the database.
+# !!! CRITICALLY IMPORTANT: Never share this key, and never change it after the first start.
+APP_CRYPT_KEY=change_me # SHOULD ALREADY BE SET IN STEP 3
 
-    # Telegram Bot API token. Obtain it from https://t.me/BotFather/
-    # !!! CRITICALLY IMPORTANT: Never share this token publicly. It grants full control over your bot.
-    BOT_TOKEN=change_me
+# Secret used to sign JWTs. Do not reuse APP_CRYPT_KEY here.
+# !!! CRITICALLY IMPORTANT: Never share this secret.
+APP_JWT_SECRET=change_me # SHOULD ALREADY BE SET IN STEP 3
 
-    # Secret token for webhook verification. Ensures webhook requests originate from Telegram.
-    BOT_SECRET_TOKEN=change_me # SHOULD ALREADY BE SET IN STEP 3
+# Hostname or Docker service name for connecting to the Remnawave API.
+# Without HTTP/HTTPS and without a trailing slash.
+REMNAWAVE_HOST=remnawave
 
-    # Owner Telegram user ID. Grants elevated permissions.
-    BOT_OWNER_ID=change_me
+# API token for authenticating with Remnawave.
+# Created in the panel: Settings → API Tokens.
+REMNAWAVE_TOKEN=change_me
 
-    # Telegram username of the support account used for deep-linking (without @).
-    BOT_SUPPORT_USERNAME=change_me
+# Secret token for verifying incoming webhooks from Remnawave.
+# In the Remnawave panel, this corresponds to WEBHOOK_SECRET_HEADER (env).
+REMNAWAVE_WEBHOOK_SECRET=change_me
 
-    # Controls the behavior of the "connect" button:
-    # - empty or false  -> opens the subscription page in the browser
-    # - true            -> opens the subscription page in WebApp
-    # - URL (e.g., https://example.com/) -> opens the specified URL in WebApp
-    BOT_MINI_APP=false
-
-    # Hostname or Docker service name for connecting to the Remnawave API.
-    REMNAWAVE_HOST=remnawave
-
-    # API token for authenticating with the Remnawave service.
-    REMNAWAVE_TOKEN=change_me
-
-    # Secret token for verifying incoming webhooks from Remnawave.
-    # In the Remnawave Panel, this corresponds to WEBHOOK_SECRET_HEADER (env).
-    REMNAWAVE_WEBHOOK_SECRET=change_me
-
-    # Password for the database.
-    DATABASE_PASSWORD=change_me # SHOULD ALREADY BE SET IN STEP 3
+# Database password.
+DATABASE_PASSWORD=change_me # SHOULD ALREADY BE SET IN STEP 3
 ```
 
 <Callout type="idea">
 `REMNAWAVE_HOST=remnawave` uses the container name from the Remnawave Docker network.
 </Callout>
 
-<Callout type="idea">
-Set the `REMNAWAVE_TOKEN` variable to your panel API token. You can create a token in Remnawave Settings → API Tokens.
-</Callout>
+</Method>
 
-<Callout type="warn">
-`REMNAWAVE_WEBHOOK_SECRET` must match the value of `WEBHOOK_SECRET_HEADER` in the panel's `.env` file.
-</Callout>
-
-<Callout type="warn">
-If you are using Remnawave Reverse-Proxy by eGames, add a cookie for authorization. Example: `REMNAWAVE_COOKIE=rEmnaprx=aBCDefgh1`. How to get the cookie: [instructions](https://wiki.egam.es/ru/troubleshooting/common-issues/#%D1%83%D1%82%D0%B5%D1%80%D1%8F%D0%BD%D0%BD%D1%8B%D0%B9-cookie-%D0%BF%D1%83%D1%82%D0%B8-%D0%BA-%D0%BF%D0%B0%D0%BD%D0%B5%D0%BB%D0%B8).
-</Callout>
-
-#### Step 5: Configure the webhook from the panel to the bot
-
-<Callout type="error">
-This step is critically important for the bot to work correctly.
-</Callout>
-
-Open the Remnawave panel `.env` file:
-
-```bash title="Edit panel .env file"
-    cd /opt/remnawave && nano .env
-```
-
-Set `WEBHOOK_ENABLED=true` and set `WEBHOOK_URL` to your actual bot domain:
-
-```bash title="Panel .env file contents"
-    WEBHOOK_ENABLED=true
-    WEBHOOK_URL=https://bot.domain.com/api/v1/remnawave
-```
-
-<Callout type="warn">
-Replace `bot.domain.com` with your actual domain.
-</Callout>
-
-Find the `WEBHOOK_SECRET_HEADER` variable in the same file and copy its value:
-
-```bash title="Panel .env file contents"
-    WEBHOOK_SECRET_HEADER=ey1234567890qwertyuiopasdfghjklzxcvbnm
-```
-
-<Callout type="idea">
-The value `ey1234567890qwertyuiopasdfghjklzxcvbnm` is shown as an example.
-</Callout>
-
-Restart the Remnawave panel container to apply the changes:
-
-```bash title="Restart Remnawave container"
-    cd /opt/remnawave && docker compose up -d
-```
-
-Return to the bot's `.env` file and paste the copied value into `REMNAWAVE_WEBHOOK_SECRET`:
-
-```bash title="Edit Remnashop .env file"
-    cd /opt/remnashop && nano .env
-```
-
-```bash title="Remnashop .env file contents"
-    REMNAWAVE_WEBHOOK_SECRET=ey1234567890qwertyuiopasdfghjklzxcvbnm
-```
-
-<Callout type="warn">
-`REMNAWAVE_WEBHOOK_SECRET` must match the value of `WEBHOOK_SECRET_HEADER` in the panel's `.env` file.
-</Callout>
-
-#### Step 6: Start the bot
-
-```bash title="Start containers"
-    docker compose up -d && docker compose logs -f -t
-```
-
-<Callout type="idea">
-If everything is configured correctly, the bot will send a welcome message.
-</Callout>
-
-<Callout type="error">
-**WARNING!**
-
-A reverse proxy is required for Remnashop to work correctly.
-
-Do not expose services directly to the public internet. Use only 127.0.0.1 for Remnashop services.
-</Callout>
-
-You can now proceed to set up the reverse proxy.
-
-<Card title="Install Reverse Proxy" href="/docs/reverse-proxy/caddy">
-Installation and configuration of the reverse proxy
-</Card>
-</Tab>
-
-<Tab value="Separate servers">
-Use this method if the bot will run on a different server from the Remnawave panel. The bot connects to Remnawave through an external HTTPS URL.
-
-#### Step 1: Create the project directory
-
-```bash title="Create project directory"
-    mkdir /opt/remnashop && cd /opt/remnashop
-```
-
-#### Step 2: Download required files
-
-Download the `docker-compose.yml` and `.env` files by running the following commands:
-
-```bash title="Get .env file"
-    curl -o .env https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/.env.example
-```
-
-```bash title="Get docker-compose.yml file (bot and panel on different servers)"
-    curl -o docker-compose.yml https://raw.githubusercontent.com/snoups/remnashop/refs/heads/main/docker-compose.prod.external.yml
-```
-
-#### Step 3: Generate secrets
-
-Generate secret keys by running the following commands:
-
-```bash title="Generate secret keys"
-    sed -i "s|^APP_CRYPT_KEY=.*|APP_CRYPT_KEY=$(openssl rand -base64 32 | tr -d '\n')|" .env && sed -i "s|^BOT_SECRET_TOKEN=.*|BOT_SECRET_TOKEN=$(openssl rand -hex 64 | tr -d '\n')|" .env
-```
-
-```bash title="Generate passwords"
-    sed -i "s|^DATABASE_PASSWORD=.*|DATABASE_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env && sed -i "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env
-```
-
-#### Step 4: Configure the .env file
-
-<Callout type="idea">
-For more information about environment variables, see the [Environment Variables](/docs/getting-started/environment) page.
-</Callout>
-
-Open the `.env` file:
-
-```bash title="Edit .env file"
-    cd /opt/remnashop && nano .env
-```
+<Method only="separate">
 
 ```bash title=".env file contents"
-    # Domain through which your bot is publicly accessible.
-    # Used for receiving webhooks from services (e.g., Telegram, payment systems).
-    # !!! WARNING: Specify domain WITHOUT HTTP/HTTPS and WITHOUT trailing slash.
-    APP_DOMAIN=change_me
+# Domain through which Remnashop is publicly accessible. The dashboard is served on it,
+# and webhooks arrive at it (Telegram, payment systems, Remnawave).
+# !!! WARNING: Specify the domain WITHOUT HTTP/HTTPS and WITHOUT a trailing slash.
+APP_DOMAIN=change_me
 
-    # Encryption key for securing sensitive data (e.g., payment tokens) in the database.
-    # !!! CRITICALLY IMPORTANT: Never share this token publicly.
-    APP_CRYPT_KEY=change_me # SHOULD ALREADY BE SET IN STEP 3
+# Encryption key for sensitive data (bot token, OAuth secrets, payment gateway credentials) in the database.
+# !!! CRITICALLY IMPORTANT: Never share this key, and never change it after the first start.
+APP_CRYPT_KEY=change_me # SHOULD ALREADY BE SET IN STEP 3
 
-    # Telegram Bot API token. Obtain it from https://t.me/BotFather/
-    # !!! CRITICALLY IMPORTANT: Never share this token publicly. It grants full control over your bot.
-    BOT_TOKEN=change_me
+# Secret used to sign JWTs. Do not reuse APP_CRYPT_KEY here.
+# !!! CRITICALLY IMPORTANT: Never share this secret.
+APP_JWT_SECRET=change_me # SHOULD ALREADY BE SET IN STEP 3
 
-    # Secret token for webhook verification. Ensures webhook requests originate from Telegram.
-    BOT_SECRET_TOKEN=change_me # SHOULD ALREADY BE SET IN STEP 3
+# Remnawave panel domain for connecting over external HTTPS.
+# !!! Specify the domain WITHOUT HTTP/HTTPS and WITHOUT a trailing slash.
+REMNAWAVE_HOST=panel.domain.com
 
-    # Owner Telegram user ID. Grants elevated permissions.
-    BOT_OWNER_ID=change_me
+# API token for authenticating with Remnawave.
+# Created in the panel: Settings → API Tokens.
+REMNAWAVE_TOKEN=change_me
 
-    # Telegram username of the support account used for deep-linking (without @).
-    BOT_SUPPORT_USERNAME=change_me
+# Secret token for verifying incoming webhooks from Remnawave.
+# In the Remnawave panel, this corresponds to WEBHOOK_SECRET_HEADER (env).
+REMNAWAVE_WEBHOOK_SECRET=change_me
 
-    # Controls the behavior of the "connect" button:
-    # - empty or false  -> opens the subscription page in the browser
-    # - true            -> opens the subscription page in WebApp
-    # - URL (e.g., https://example.com/) -> opens the specified URL in WebApp
-    BOT_MINI_APP=false
-
-    # Hostname or domain of the Remnawave panel for connecting via external HTTPS.
-    # !!! Specify domain WITHOUT HTTP/HTTPS and WITHOUT trailing slash.
-    REMNAWAVE_HOST=panel.domain.com
-
-    # API token for authenticating with the Remnawave service.
-    REMNAWAVE_TOKEN=change_me
-
-    # Secret token for verifying incoming webhooks from Remnawave.
-    # In the Remnawave Panel, this corresponds to WEBHOOK_SECRET_HEADER (env).
-    REMNAWAVE_WEBHOOK_SECRET=change_me
-
-    # Password for the database.
-    DATABASE_PASSWORD=change_me # SHOULD ALREADY BE SET IN STEP 3
+# Database password.
+DATABASE_PASSWORD=change_me # SHOULD ALREADY BE SET IN STEP 3
 ```
 
 <Callout type="idea">
 Set `REMNAWAVE_HOST` to your Remnawave panel domain. Example: `REMNAWAVE_HOST=panel.domain.com`
 </Callout>
 
+</Method>
+
 <Callout type="idea">
-Set the `REMNAWAVE_TOKEN` variable to your panel API token. You can create a token in Remnawave Settings → API Tokens.
+`REMNAWAVE_TOKEN` must hold a panel API token. You can create one in "Remnawave Settings" → "API Tokens".
 </Callout>
 
 <Callout type="warn">
-`REMNAWAVE_WEBHOOK_SECRET` must match the value of `WEBHOOK_SECRET_HEADER` in the panel's `.env` file.
+`REMNAWAVE_WEBHOOK_SECRET` must match `WEBHOOK_SECRET_HEADER` from the panel's `.env`.
 </Callout>
 
 <Callout type="warn">
-If you are using Remnawave Reverse-Proxy by eGames, add a cookie for authorization. Example: `REMNAWAVE_COOKIE=rEmnaprx=aBCDefgh1`. How to get the cookie: [instructions](https://wiki.egam.es/ru/troubleshooting/common-issues/#%D1%83%D1%82%D0%B5%D1%80%D1%8F%D0%BD%D0%BD%D1%8B%D0%B9-cookie-%D0%BF%D1%83%D1%82%D0%B8-%D0%BA-%D0%BF%D0%B0%D0%BD%D0%B5%D0%BB%D0%B8).
+If you use Remnawave Reverse-Proxy by eGames, add an authorization cookie. Example: `REMNAWAVE_COOKIE=rEmnaprx=aBCDefgh1`. How to get the cookie: [instructions](https://wiki.egam.es/ru/troubleshooting/common-issues/#%D1%83%D1%82%D0%B5%D1%80%D1%8F%D0%BD%D0%BD%D1%8B%D0%B9-cookie-%D0%BF%D1%83%D1%82%D0%B8-%D0%BA-%D0%BF%D0%B0%D0%BD%D0%B5%D0%BB%D0%B8).
 </Callout>
 
-#### Step 5: Configure the webhook from the panel to the bot
+</Section>
+
+<Section title="Step 5: Set up the webhook from the panel to Remnashop" description="Keeping users in sync with the panel" icon="Webhook">
 
 <Callout type="error">
-This step is critically important for the bot to work correctly.
+This step is critical: the webhook is how Remnashop learns about user changes in the panel.
 </Callout>
 
-Open the Remnawave panel `.env` file:
+Open the Remnawave panel's `.env` file:
 
-```bash title="Edit panel .env file"
-    cd /opt/remnawave && nano .env
+```bash title="Edit the panel .env file"
+cd /opt/remnawave && nano .env
 ```
 
-Set `WEBHOOK_ENABLED=true` and set `WEBHOOK_URL` to your actual bot domain:
+Set `WEBHOOK_ENABLED=true` and point `WEBHOOK_URL` at the Remnashop domain (the `APP_DOMAIN` value):
 
 ```bash title="Panel .env file contents"
-    WEBHOOK_ENABLED=true
-    WEBHOOK_URL=https://bot.domain.com/api/v1/remnawave
+WEBHOOK_ENABLED=true
+WEBHOOK_URL=https://shop.domain.com/api/v1/remnawave
 ```
 
 <Callout type="warn">
-Replace `bot.domain.com` with your actual domain.
+Replace `shop.domain.com` with your actual domain.
 </Callout>
 
 Find the `WEBHOOK_SECRET_HEADER` variable in the same file and copy its value:
 
 ```bash title="Panel .env file contents"
-    WEBHOOK_SECRET_HEADER=ey1234567890qwertyuiopasdfghjklzxcvbnm
+WEBHOOK_SECRET_HEADER=ey1234567890qwertyuiopasdfghjklzxcvbnm
 ```
 
 <Callout type="idea">
-The value `ey1234567890qwertyuiopasdfghjklzxcvbnm` is shown as an example.
+The value `ey1234567890qwertyuiopasdfghjklzxcvbnm` is an example.
 </Callout>
 
 Restart the Remnawave panel container to apply the changes:
 
-```bash title="Restart Remnawave container"
-    cd /opt/remnawave && docker compose up -d
+```bash title="Restart the Remnawave container"
+cd /opt/remnawave && docker compose up -d
 ```
 
-Return to the bot's `.env` file and paste the copied value into `REMNAWAVE_WEBHOOK_SECRET`:
+Go back to the Remnashop `.env` file and paste the copied value into `REMNAWAVE_WEBHOOK_SECRET`:
 
-```bash title="Edit Remnashop .env file"
-    cd /opt/remnashop && nano .env
+```bash title="Edit the Remnashop .env file"
+cd /opt/remnashop && nano .env
 ```
 
 ```bash title="Remnashop .env file contents"
-    REMNAWAVE_WEBHOOK_SECRET=ey1234567890qwertyuiopasdfghjklzxcvbnm
+REMNAWAVE_WEBHOOK_SECRET=ey1234567890qwertyuiopasdfghjklzxcvbnm
 ```
 
 <Callout type="warn">
-`REMNAWAVE_WEBHOOK_SECRET` must match the value of `WEBHOOK_SECRET_HEADER` in the panel's `.env` file.
+`REMNAWAVE_WEBHOOK_SECRET` must match `WEBHOOK_SECRET_HEADER` from the panel's `.env` file.
 </Callout>
 
-#### Step 6: Start the bot
+</Section>
 
-```bash title="Start containers"
-    docker compose up -d && docker compose logs -f -t
+<Section title="Step 6: Start Remnashop" description="The Remnashop containers" icon="Play">
+
+```bash title="Start the containers"
+docker compose up -d && docker compose logs -f -t
 ```
 
 <Callout type="idea">
-If everything is configured correctly, the bot will send a welcome message.
+Remnashop runs several containers: the API with the dashboard, the Telegram bot, the worker and the scheduler, plus PostgreSQL and Valkey.
 </Callout>
 
-<Callout type="error">
-**WARNING!**
+</Section>
 
-A reverse proxy is required for Remnashop to work correctly.
+<Section title="Step 7: Reverse proxy" description="Reaching Remnashop from outside" icon="ShieldCheck">
 
-Do not expose services directly to the public internet. Use only 127.0.0.1 for Remnashop services.
+<Callout type="error" title="Remnashop requires a reverse proxy to work correctly">
+Do not expose the services to the public internet directly.
 </Callout>
 
-You can now proceed to set up the reverse proxy.
+Set up one of the reverse proxies. The routing is described in the [overview](/docs/reverse-proxy).
 
-<Card title="Install Reverse Proxy" href="/docs/reverse-proxy/caddy">
-Installation and configuration of the reverse proxy
+<Cards>
+<Card title="Caddy" href="/docs/reverse-proxy/caddy">
+The shortest configuration — a good pick if you are starting from scratch
 </Card>
-</Tab>
-</Tabs>
+<Card title="Nginx" href="/docs/reverse-proxy/nginx">
+Flexible setup — handy if Nginx already runs on the server
+</Card>
+<Card title="Traefik" href="/docs/reverse-proxy/traefik">
+Dynamic routing — handy if Traefik already runs on the server
+</Card>
+</Cards>
+
+</Section>
+
+<Section title="Step 8: First sign-in" description="The owner account and the Telegram bot" icon="LogIn">
+
+Once the reverse proxy is set up, open `https://shop.domain.com` (the `APP_DOMAIN` domain) in your browser and create the owner account.
+
+Then connect the Telegram bot: in the dashboard open "Settings" → "Telegram bot", paste the token from [@BotFather](https://t.me/BotFather), generate the webhook secret token and apply the changes.
+
+<Callout type="idea">
+The owner account can be created only once. After that, sign-up in the dashboard is closed.
+</Callout>
+
+</Section>

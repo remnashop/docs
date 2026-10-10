@@ -1,13 +1,16 @@
-import { loader } from 'fumadocs-core/source';
+import { loader, type LoaderPlugin } from 'fumadocs-core/source';
 import { docsContentRoute, docsImageRoute, docsRoute } from './shared';
 import { i18n } from './i18n';
 import { defineDocs } from 'fumadocs-mdx/macro';
 import { metaSchema, pageSchema } from 'fumadocs-core/source/schema';
+import { lucideIconsPlugin } from 'fumadocs-core/source/plugins/lucide-icons';
 
 const docs = defineDocs({
   dir: 'content/docs',
   docs: {
-    schema: pageSchema,
+    // navTitle: a shorter label for the sidebar, where a long title would wrap or crowd its
+    // row; the page itself keeps the full title.
+    schema: pageSchema.extend({ navTitle: pageSchema.shape.title.optional() }),
     postprocess: {
       includeProcessedMarkdown: true,
     },
@@ -17,11 +20,24 @@ const docs = defineDocs({
   },
 });
 
+const navTitlePlugin: LoaderPlugin = {
+  transformPageTree: {
+    file(node, filePath) {
+      const file = filePath ? this.storage.read(filePath) : undefined;
+      if (file?.format === 'page' && 'navTitle' in file.data && typeof file.data.navTitle === 'string') {
+        node.name = file.data.navTitle;
+      }
+      return node;
+    },
+  },
+};
+
 export const source = loader({
   baseUrl: docsRoute,
   i18n,
   source: docs.toFumadocsSource(),
-  plugins: [],
+  // `icon:` in a page's frontmatter names a lucide icon, the dashboard sidebar's set.
+  plugins: [lucideIconsPlugin(), navTitlePlugin],
 });
 
 // Keep the default locale out of generated URLs, matching hideLocale: 'default-locale'.

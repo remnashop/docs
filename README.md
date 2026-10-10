@@ -1,6 +1,6 @@
 # remnashop docs
 
-Landing page and documentation for [Remnashop](https://github.com/snoups/remnashop), built with
+Landing page and documentation for [Remnashop](https://github.com/remnashop/remnashop), built with
 [Fumadocs](https://fumadocs.dev).
 
 Site: <https://remnashop.dev>
@@ -57,7 +57,7 @@ Interface translations (not content) live in `lib/translations.ts`.
 
 ```bash
 npm run build
-npx serve out
+npm start
 ```
 
 `npm run build` exports the static site into `out/` and then lifts the contents of `out/en` up to
