@@ -1,0 +1,50 @@
+---
+title: Rescue CLI
+icon: LifeBuoy
+---
+
+The rescue CLI gets you back into the dashboard when signing in is no longer possible: password login is switched off, the owner is locked out by the IP allowlist, the password is lost, or `APP_CRYPT_KEY` was changed. It runs on the server and needs no dashboard session.
+
+<Section title="Launch" description="A separate container with the menu only" icon="Terminal">
+
+```bash title="Open the rescue CLI"
+cd /opt/remnashop && docker compose run --rm remnashop cli
+```
+
+The command starts a one-off container next to the running ones and removes it on exit. It runs no migrations and does not check `APP_CRYPT_KEY`, so it works even when the `remnashop` container keeps restarting.
+
+</Section>
+
+<Section title="Actions" description="What each menu item does" icon="ListChecks">
+
+| Item | Action | When to use |
+| ---- | ------ | ----------- |
+| 1 | Enable password authentication | Password login was switched off in the dashboard and no other sign-in method works. |
+| 2 | Restore backup | Restores the database from a dump in the backup directory or from a given path. All other database connections are terminated and the current database is overwritten. |
+| 3 | Reset owner access | The owner gets a new generated password, the IP allowlist is cleared, all sessions are signed out, passkeys, linked OAuth accounts and Telegram are removed. API tokens are kept. Password login is switched on. |
+| 4 | Reset encrypted secrets | `APP_CRYPT_KEY` no longer matches the database. Erases the bot token and proxy, payment gateway credentials (gateways are switched off), OAuth clients, SMTP passwords, the captcha secret and the web push keys. |
+
+Every action is recorded in the audit log.
+
+</Section>
+
+<Section title="APP_CRYPT_KEY was changed" description="Containers refuse to start" icon="KeyRound">
+
+If `APP_CRYPT_KEY` does not match the one the database was set up with, the containers stop at startup with the error `APP_CRYPT_KEY does not decrypt ...`.
+
+<Callout type="idea">
+The best fix is to put the old key back into `.env`: nothing is lost.
+</Callout>
+
+If the old key is gone:
+
+1. Open the rescue CLI and choose **4. Reset encrypted secrets**.
+2. Open it again and choose **3. Reset owner access** — staff passwords are tied to the same key. Save the new password.
+3. Restart: `docker compose up -d`.
+4. Sign in to the dashboard and enter the bot token, payment gateway credentials, OAuth and SMTP settings again.
+
+<Callout type="warn">
+Backups made with the old key cannot be restored with the new one.
+</Callout>
+
+</Section>
