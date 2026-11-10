@@ -1,0 +1,154 @@
+---
+title: Масштабирование
+icon: Gauge
+---
+
+<Section title="Процессы" description="Из чего состоит Remnashop" icon="Boxes">
+
+Remnashop работает в нескольких контейнерах. Каждый Python-процесс использует одно ядро CPU, поэтому дополнительные ядра помогают, только если запустить больше процессов.
+
+| Контейнер             | Что делает                                                           | Память         | Обязателен     |
+| --------------------- | -------------------------------------------------------------------- | -------------- | -------------- |
+| `remnashop`           | API, панель управления, вебхуки панели Remnawave и платёжных систем | 220–450 МБ     | да             |
+| `remnashop-worker`    | Фоновые задачи: события, уведомления, рассылки, синхронизация        | ~180 МБ на процесс | да         |
+| `remnashop-scheduler` | Запускает задачи по расписанию                                       | ~140 МБ        | да, строго один |
+| `remnashop-telegram`  | Telegram-бот                                                         | 340–390 МБ     | нет            |
+| `remnashop-admin-api` | Отдельный api только для панели управления                           | 220–390 МБ     | нет, выключен  |
+
+</Section>
+
+<Section title="Что увеличивать" description="По симптомам" icon="Activity">
+
+| Симптом | Что делать |
+| ------- | ---------- |
+| Панель управления и кабинет отвечают секундами, CPU контейнера `remnashop` около 100% | Увеличьте `APP_WORKERS` или включите отдельный api панели управления |
+| Уведомления и рассылки опаздывают, CPU `remnashop-worker` около 100% | Увеличьте `WORKER_PROCESSES` |
+| Бот отвечает с задержкой, в логах `remnashop-telegram` ответы 503 | Бот упёрся в CPU: не делите его ядро с api и `worker`, проверьте, что `LOG_LEVEL=INFO` |
+| В логах `connection pool exhausted` или таймауты пула | Пересчитайте соединения к базе данных (ниже) и поднимите `DATABASE_MAX_CONNECTIONS` |
+
+Двигайтесь от дешёвого к дорогому: сначала больше процессов на том же сервере, затем отдельный api панели управления, затем сервер с 4–8 ядрами и внешний PostgreSQL.
+
+</Section>
+
+<Section title="Больше процессов" description="APP_WORKERS и WORKER_PROCESSES" icon="Cpu">
+
+Задайте число процессов в `.env` Remnashop — примерно по одному ядру на процесс:
+
+```bash title="Содержимое файла .env"
+# процессы api (uvicorn --workers)
+APP_WORKERS=2
+
+# процессы worker; каждый выполняет до WORKER_MAX_ASYNC_TASKS задач одновременно
+WORKER_PROCESSES=2
+```
+
+```bash title="Применение изменений"
+cd /opt/remnashop && docker compose up -d
+```
+
+<Callout type="idea">
+`APP_WORKERS` действует и на `remnashop-admin-api`, если он включён. `scheduler` всегда один: несколько копий запускали бы задачи по расписанию дважды.
+</Callout>
+
+</Section>
+
+<Section title="Соединения к базе данных" description="DATABASE_MAX_CONNECTIONS" icon="Database">
+
+Каждый процесс открывает до `DATABASE_POOL_SIZE + DATABASE_MAX_OVERFLOW` соединений, по умолчанию 10 + 20 = 30. Их сумма с запасом на миграции, резервное копирование и консоль восстановления должна помещаться в `DATABASE_MAX_CONNECTIONS` (по умолчанию 200):
+
+```text title="Расчёт"
+30 × (APP_WORKERS            # api
+    + APP_WORKERS            # admin-api, если включён
+    + 1                      # telegram, если запущен
+    + WORKER_PROCESSES       # worker
+    + 1)                     # scheduler
+  + ~10 запаса  ≤  DATABASE_MAX_CONNECTIONS
+```
+
+Например, `APP_WORKERS=2`, включённый admin-api и `WORKER_PROCESSES=2` дают 30 × 8 + 10 = 250 — поднимите `DATABASE_MAX_CONNECTIONS` до 260 или уменьшите пулы.
+
+<Callout type="warn">
+Для внешней базы данных `DATABASE_MAX_CONNECTIONS` ничего не меняет: лимит соединений задаёт её владелец.
+</Callout>
+
+</Section>
+
+<Section title="Отдельный api панели управления" description="COMPOSE_PROFILES=admin-api" icon="Split">
+
+Второй контейнер api с тем же образом обслуживает только панель управления. Когда кабинет, бот или вебхуки нагружают основной api, панель управления продолжает отвечать. Для небольшого магазина он не нужен.
+
+Включите его в `.env` Remnashop и перезапустите:
+
+```bash title="Содержимое файла .env"
+COMPOSE_PROFILES=admin-api
+```
+
+```bash title="Запуск"
+cd /opt/remnashop && docker compose up -d
+```
+
+Затем направьте в обратном прокси всё, кроме вебхуков, в `remnashop-admin-api`. Вебхуки панели Remnawave и платёжных систем остаются на `remnashop`, вебхук Telegram — на `remnashop-telegram`. Для Caddy:
+
+```text title="Caddyfile"
+https://SHOP_DOMAIN {
+        encode
+        handle /api/v1/telegram {
+                reverse_proxy http://remnashop-telegram:5001
+        }
+        handle /api/v1/remnawave {
+                reverse_proxy http://remnashop:5000
+        }
+        handle /api/v1/payments/* {
+                reverse_proxy http://remnashop:5000
+        }
+        handle /metrics {
+                respond 404
+        }
+        handle {
+                reverse_proxy http://remnashop-admin-api:5000
+        }
+}
+```
+
+<Callout type="idea">
+Если прокси запущен не в Docker, используйте `127.0.0.1:5002` (порт задаётся `ADMIN_API_PORT`). В Nginx и Traefik добавьте те же маршруты по образцу [готовых конфигураций](/ru/docs/reverse-proxy).
+</Callout>
+
+<Callout type="warn">
+Кабинет на том же сервере ходит в `remnashop` напрямую через Docker-сеть и не нагружает api панели управления. Кабинет на отдельном сервере ходит через домен Remnashop и попадёт в `remnashop-admin-api` вместе с панелью управления.
+</Callout>
+
+</Section>
+
+<Section title="Без Telegram-бота" description="Только веб-кабинет" icon="BotOff">
+
+Если клиенты пользуются только веб-кабинетом, контейнер `remnashop-telegram` можно не запускать: от него не зависит ни один другой контейнер, и сервер освобождает 340–390 МБ памяти.
+
+Создайте рядом с `docker-compose.yml` файл `docker-compose.override.yml`. Docker Compose подхватывает его сам, а обновление Remnashop его не перезаписывает:
+
+```yaml title="docker-compose.override.yml"
+services:
+  remnashop-telegram:
+    profiles: ["bot"]
+```
+
+```bash title="Остановка бота"
+cd /opt/remnashop && docker compose rm -sf remnashop-telegram && docker compose up -d
+```
+
+Чтобы вернуть бота, удалите `docker-compose.override.yml` и выполните `docker compose up -d`.
+
+Без контейнера бота не работают:
+
+* сам бот и кнопка Mini App в нём;
+* вход в кабинет подтверждением в боте.
+
+Вход в кабинет через Telegram OAuth, Google, Яндекс и по коду на email работает как обычно.
+
+Пока токен бота не задан, уведомления клиентам уходят на email, а администраторам — в панель управления и веб-пушем.
+
+<Callout type="warn">
+Не задавайте токен бота в панели управления, пока бот выключен: без запущенного контейнера вебхук не устанавливается, и в блоке «Требует внимания» появится предупреждение «Вебхук Telegram-бота не работает». На карточке процессов в обзоре `telegram` будет отмечен как не запущенный — это ожидаемо.
+</Callout>
+
+</Section>

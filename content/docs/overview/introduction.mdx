@@ -5,6 +5,8 @@ icon: BookOpen
 
 import { Download, ListChecks, MessagesSquare } from 'lucide-react';
 
+<Section title="About Remnashop" description="What it is and how it works" icon="Info">
+
 Remnashop is a ready-made platform for selling VPN subscriptions on top of
 [Remnawave](https://github.com/remnawave). Customers buy and renew their subscription in the
 Telegram bot or the web cabinet, and you run everything from the dashboard. The platform is free,
@@ -16,6 +18,8 @@ secrets are encrypted.
 
 You need a running Remnawave panel and a server with Docker — see the
 [requirements](/docs/getting-started/requirements).
+
+</Section>
 
 <Accordions title="Features" description="What Remnashop can do" icon="LayoutGrid">
 
@@ -39,6 +43,7 @@ You need a running Remnawave panel and a server with Docker — see the
 - Availability: everyone, new, existing, invited, a list of Telegram IDs and emails, or by direct link only.
 - Internal and external squads per plan.
 - A plan discount with start and end dates.
+- “Popular” and “Best value” badges, an icon from premium emoji.
 - Trial plans — paid or free.
 - Add-ons on top of a subscription: extra traffic and devices.
 - The use of bonus days and promo codes can be allowed or blocked per plan.
@@ -54,7 +59,7 @@ You need a running Remnawave panel and a server with Docker — see the
 
 <Accordion title="Subscriptions" icon="Layers">
 - Purchase, renewal and plan change; a limit on active subscriptions per user, or no limit.
-- Data sync with Remnawave.
+- Two-way sync with Remnawave: pull data from the panel or push it there, for one subscription or all at once, with a diff preview.
 - Grant, change plan, enable and disable, reset traffic, reissue the link, squads and delete.
 - Users can reset their devices (one at a time or all at once) and their subscription link themselves, with a configurable interval between resets.
 </Accordion>
@@ -79,7 +84,7 @@ You need a running Remnawave panel and a server with Docker — see the
 - Rewards: bonus days for renewing a subscription, or points — fixed or a percentage of the payment.
 - Accrual on the first payment or on every payment.
 - A reward for the invitee on sign-up through the link.
-- Points withdrawal requests, adjusting points and bonus days.
+- Points withdrawal through support, adjusting points and bonus days.
 - One referral code with links to the bot and to the web cabinet; the code can be reset.
 - Revenue from invitees for each referrer.
 </Accordion>
@@ -89,6 +94,7 @@ You need a running Remnawave panel and a server with Docker — see the
 - Enabling, display order and test payments.
 - Manually fulfilling a subscription for an unpaid transaction.
 - Waitlist: with payments turned off, customers are notified once they are back on.
+- Telegram Stars refunds from the dashboard, with or without rolling back the subscription.
 </Accordion>
 
 <Accordion title="Transactions" icon="Receipt">
@@ -101,6 +107,9 @@ You need a running Remnawave panel and a server with Docker — see the
 - Audience by filters — subscription, plans, expiry, payments, language, source, sign-up date — or selected customers.
 - Photos, videos, GIFs and documents; buttons with a link, a promo code or a jump to the menu.
 - Posting to a Telegram channel.
+- Delivery to Telegram, email or both; emails get their own HTML with images.
+- Emails go out through your SMTP server, with an optional separate profile and sending rate for broadcasts.
+- Marketing emails carry a one-click unsubscribe link.
 - Preview, test send and scheduled send.
 - Cancel, retry failed sends and recall sent messages.
 </Accordion>
@@ -123,8 +132,29 @@ You need a running Remnawave panel and a server with Docker — see the
 
 <Accordion title="Web cabinet" icon="Globe">
 - Opens in a browser or as a Telegram Mini App.
-- Sign-in with email and password or through Telegram, Yandex and Google.
+- Sign-in captcha: Cloudflare Turnstile or hCaptcha.
+- A connection guide edited in the dashboard.
+- Sign-in through Telegram (in the Mini App or by confirming in the bot), Yandex, Google or an email code.
+- Customers are notified of sign-ins from a new device.
+- Several sign-in methods on one account: Telegram, email, Google and Yandex; a method already used by another account merges the two after confirmation.
 - Purchase and renewal, promo codes, devices, the referral program and the profile.
+</Accordion>
+
+<Accordion title="Customer notifications" icon="BellRing">
+- Purchases, renewals and plan changes, add-ons, subscriptions granted by an admin, and refunds.
+- Subscription expiring soon or expired, traffic used up, subscription not connected to the VPN.
+- Referral rewards and a promo code discount about to end.
+- A block for torrenting.
+- Customers with Telegram get them in the bot, others by email; money and security messages go to both.
+- Texts are editable in the dashboard.
+</Accordion>
+
+<Accordion title="Legal documents" icon="Scale">
+- Public offer, terms of use and privacy policy.
+- A text per language with revision history and an optional variant for the bot or the web cabinet.
+- Visibility in the bot and the web cabinet is set separately.
+- Acceptance log: at checkout and at the first web cabinet sign-in, with re-acceptance after a change.
+- In the bot: the `/terms` command and a main menu button.
 </Accordion>
 
 <Accordion title="Access and security" icon="ShieldCheck">
@@ -140,7 +170,7 @@ You need a running Remnawave panel and a server with Docker — see the
 - User card: subscriptions, transactions, referrals and promo codes.
 - Block, delete, discounts, Telegram ID binding and ending sessions.
 - Account merging.
-- Search by name, username and Telegram ID.
+- Search by name, username, email, Telegram ID and ID.
 </Accordion>
 
 <Accordion title="Blacklist" icon="Ban">
@@ -160,7 +190,7 @@ You need a running Remnawave panel and a server with Docker — see the
 </Accordion>
 
 <Accordion title="Notifications" icon="Bell">
-- "Needs attention" on the home page: offline nodes, payment errors, failed backups, paid but unfulfilled subscriptions, stuck payments.
+- “Needs attention” on the home page: offline nodes, payment errors, failed backups, paid but unfulfilled subscriptions, stuck payments.
 - Channels: the dashboard, web push and Telegram.
 - Each administrator chooses which notifications to get and where.
 - Event log.
@@ -191,7 +221,7 @@ You need a running Remnawave panel and a server with Docker — see the
 What to prepare before installing
 </Card>
 <Card icon={<Download />} title="Installation" href="/docs/getting-started/installation">
-Deploying on a server step by step
+Deploying on a server
 </Card>
 <Card icon={<MessagesSquare />} title="Telegram group" href="https://t.me/remna_shop" external>
 Questions and discussion

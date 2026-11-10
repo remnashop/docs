@@ -6,12 +6,9 @@ import { GitHubIcon } from '@/components/icons/github';
 import { TelegramIcon } from '@/components/icons/telegram';
 import { DashboardPreview } from '@/components/landing/dashboard-preview';
 
-// The dashboard's Button (shared/ui/Button.tsx) a size up for the hero: solid for the main
-// action, outline for the rest. active:scale is its bounceTap (1 + 0.05 * BOUNCE_STRENGTH).
-const button =
-  'inline-flex h-10 items-center gap-1.5 rounded-full border px-5 text-sm transition-[color,background-color,scale] active:scale-[1.015]';
-const solidButton = `${button} border-transparent bg-fd-primary font-semibold text-fd-primary-foreground hover:bg-[#67e8f9]`;
-const outlineButton = `${button} border-fd-border font-medium text-fd-foreground/80 hover:bg-white/5`;
+const button = 'inline-flex h-10 items-center justify-center gap-1.5 rounded-full border px-5 text-sm transition-colors';
+const solidButton = `${button} border-transparent bg-fd-primary font-semibold text-fd-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.25)] hover:bg-[#67e8f9]`;
+const outlineButton = `${button} border-fd-border bg-white/[0.03] font-medium text-fd-foreground/90 backdrop-blur-md hover:bg-white/[0.06]`;
 
 export function Hero({ lang }: { lang: string }) {
   const { hero } = getLanding(lang);
@@ -19,7 +16,7 @@ export function Hero({ lang }: { lang: string }) {
 
   return (
     <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 pt-16 sm:pt-24">
-      <span className="border-fd-border text-fd-muted-foreground inline-flex items-center gap-2 rounded-full border bg-white/[0.05] px-3.5 py-1.5 text-[11px] font-semibold tracking-wide uppercase backdrop-blur-xl">
+      <span className="border-fd-border text-fd-muted-foreground inline-flex items-center gap-2 rounded-full border bg-white/[0.03] px-3.5 py-1.5 text-[11px] font-semibold tracking-wide uppercase backdrop-blur-md">
         <span className="bg-fd-primary size-1.5 rounded-full shadow-[0_0_8px_var(--color-fd-primary)]" />
         {hero.note}
       </span>
@@ -34,10 +31,12 @@ export function Hero({ lang }: { lang: string }) {
           </span>
         ))}
       </p>
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      {/* A phone stacks them as two rows, documentation over the two links, rather than
+          leaving one button alone on the second line. */}
+      <div className="mt-8 grid w-full max-w-sm grid-cols-2 gap-3 sm:flex sm:w-auto sm:max-w-none sm:items-center sm:justify-center">
         <Link
           href={getDocsHref(lang)}
-          className={solidButton}
+          className={`${solidButton} col-span-2`}
         >
           <BookOpen className="size-4" />
           {hero.primaryCta}

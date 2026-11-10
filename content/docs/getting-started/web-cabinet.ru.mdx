@@ -3,6 +3,249 @@ title: Веб-кабинет
 icon: Globe
 ---
 
-<Callout type="idea">
-Страница в разработке: здесь появится инструкция по установке и настройке веб-кабинета.
+<Section title="Веб-кабинет" description="Устройство и подготовка" icon="Globe">
+
+Веб-кабинет — кабинет клиента в браузере и Telegram Mini App: вход, покупка и продление подписки, подключение, платежи и рефералы. Кабинет работает в отдельном контейнере и ходит в API Remnashop через свой прокси, поэтому браузер клиента видит только домен кабинета.
+
+<Callout type="warn">
+Сначала установите и запустите Remnashop по [инструкции по установке](/ru/docs/getting-started/installation). Для кабинета нужен отдельный домен, например `cabinet.domain.com`.
 </Callout>
+
+</Section>
+
+<Section title="Способ установки" description="Где работает кабинет относительно Remnashop" icon="Split">
+
+<MethodSwitch same="На одном сервере" separate="На разных серверах" />
+
+<Method only="same">
+
+Используйте этот способ, если кабинет будет работать на том же сервере, что и Remnashop. Кабинет подключается к API через внутреннюю Docker-сеть.
+
+</Method>
+
+<Method only="separate">
+
+Используйте этот способ, если кабинет будет работать на другом сервере. Кабинет подключается к API через домен Remnashop по HTTPS.
+
+</Method>
+
+</Section>
+
+<Section title="Шаг 1: Создание директории" description="Директория для файлов кабинета" icon="FolderPlus">
+
+```bash title="Создание директории"
+mkdir -p /opt/remnashop/cabinet && cd /opt/remnashop/cabinet
+```
+
+</Section>
+
+<Section title="Шаг 2: Общий секрет" description="Ключ между кабинетом и Remnashop" icon="KeyRound">
+
+Кабинет передаёт Remnashop IP-адрес клиента и подтверждает его секретом. Remnashop доверяет этому адресу, только если секрет совпадает с его собственным.
+
+```bash title="Генерация секрета"
+echo "CABINET_PROXY_SECRET=$(openssl rand -hex 32)" > .env && cat .env
+```
+
+Скопируйте выведенное значение — оно понадобится на шаге 4.
+
+<Callout type="idea">
+В секрете допустимы только латинские буквы, цифры, `_` и `-`. Используйте не меньше 32 символов — `openssl rand -hex 32` даёт подходящее значение.
+</Callout>
+
+</Section>
+
+<Section title="Шаг 3: Файл docker-compose.yml" description="Контейнер кабинета" icon="FileCode">
+
+```bash title="Создание docker-compose.yml"
+nano docker-compose.yml
+```
+
+<Method only="same">
+
+```yaml title="docker-compose.yml"
+services:
+  remnashop-cabinet:
+    image: ghcr.io/remnashop/remnashop-cabinet:latest
+    container_name: remnashop-cabinet
+    restart: unless-stopped
+    environment:
+      API_URL: http://remnashop:5000
+      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
+    ports:
+      - 127.0.0.1:5010:80
+    networks:
+      - remnawave-network
+
+networks:
+  remnawave-network:
+    name: remnawave-network
+    external: true
+```
+
+<Callout type="idea">
+`API_URL: http://remnashop:5000` — имя контейнера Remnashop в Docker-сети `remnawave-network`. Remnashop должен быть запущен раньше кабинета, иначе сети ещё нет и контейнер не запустится.
+</Callout>
+
+</Method>
+
+<Method only="separate">
+
+```yaml title="docker-compose.yml"
+services:
+  remnashop-cabinet:
+    image: ghcr.io/remnashop/remnashop-cabinet:latest
+    container_name: remnashop-cabinet
+    restart: unless-stopped
+    environment:
+      API_URL: https://SHOP_DOMAIN
+      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
+    ports:
+      - 127.0.0.1:5010:80
+    networks:
+      - remnawave-network
+
+networks:
+  remnawave-network:
+    name: remnawave-network
+    external: false
+```
+
+<Callout type="warn">
+Замените `SHOP_DOMAIN` на домен Remnashop — значение `APP_DOMAIN`. Указывайте `https://` и без завершающего слеша: обычный `http://` кабинет принимает только для имени контейнера в Docker-сети.
+</Callout>
+
+</Method>
+
+<Callout type="error">
+Публикуйте порт только на `127.0.0.1`, как в примере. Кабинет доверяет заголовку `X-Forwarded-For` от обратного прокси; открытый напрямую в интернет, он позволил бы клиенту подставить любой IP.
+</Callout>
+
+</Section>
+
+<Section title="Шаг 4: Настройка Remnashop" description="Домен кабинета и общий секрет" icon="FileCog">
+
+<Method only="separate">
+
+Этот шаг выполняется на сервере Remnashop.
+
+</Method>
+
+Откройте файл `.env` Remnashop:
+
+```bash title="Редактирование файла .env Remnashop"
+cd /opt/remnashop && nano .env
+```
+
+```bash title="Содержимое файла .env Remnashop"
+# Домен веб-кабинета БЕЗ HTTP/HTTPS и БЕЗ завершающего слеша.
+CABINET_DOMAIN=cabinet.domain.com
+
+# То же значение, что CABINET_PROXY_SECRET в .env кабинета (шаг 2).
+CABINET_PROXY_SECRET=change_me
+```
+
+Перезапустите Remnashop, чтобы применить изменения:
+
+```bash title="Перезапуск Remnashop"
+cd /opt/remnashop && docker compose up -d
+```
+
+<Callout type="warn">
+`CABINET_PROXY_SECRET` должен совпадать в `.env` кабинета и `.env` Remnashop. Если секрет утёк, сгенерируйте новый и замените его в обоих файлах.
+</Callout>
+
+</Section>
+
+<Section title="Шаг 5: Запуск кабинета" description="Контейнер кабинета" icon="Play">
+
+```bash title="Запуск контейнера"
+cd /opt/remnashop/cabinet && docker compose up -d && docker compose logs -f -t
+```
+
+<Callout type="idea">
+Без `API_URL` или `CABINET_PROXY_SECRET`, а также с секретом или адресом в неверном формате контейнер не запускается и пишет причину в лог.
+</Callout>
+
+</Section>
+
+<Section title="Шаг 6: Обратный прокси" description="Доступ к кабинету по домену" icon="ShieldCheck">
+
+Направьте домен кабинета на сервер (A-запись, как для домена Remnashop) и добавьте его в обратный прокси. Все запросы к домену кабинета идут в контейнер `remnashop-cabinet:80` — он отдаёт кабинет и проксирует запросы к API Remnashop.
+
+<Callout type="idea">
+Имя `remnashop-cabinet` доступно только внутри Docker-сети. Если прокси запущен не в Docker, используйте `127.0.0.1:5010`.
+</Callout>
+
+Для Caddy добавьте в Caddyfile блок сайта:
+
+```text title="Caddyfile"
+# ВЕБ-КАБИНЕТ
+https://CABINET_DOMAIN {
+        encode
+        reverse_proxy http://remnashop-cabinet:80
+}
+```
+
+<Callout type="warn">
+Замените `CABINET_DOMAIN` на домен кабинета — значение `CABINET_DOMAIN` из `.env` Remnashop.
+</Callout>
+
+Для Nginx и Traefik добавьте сайт по образцу сайта Remnashop с единственным маршрутом `/` → `remnashop-cabinet:80`; в Nginx не забудьте выпустить сертификат для домена кабинета.
+
+<Callout type="warn">
+Если домен кабинета проксируется через Cloudflare (жёлтое облако), выполните настройку со страницы [Cloudflare](/ru/docs/reverse-proxy/cloudflare), иначе все клиенты кабинета получат адреса Cloudflare и будут делить между собой лимиты запросов.
+</Callout>
+
+<Method only="separate">
+
+<Callout type="idea">
+На отдельном сервере кабинет сам создаёт Docker-сеть `remnawave-network`, поэтому конфигурации прокси для способа «На разных серверах» работают без изменений.
+</Callout>
+
+</Method>
+
+<Cards>
+<Card title="Caddy" href="/ru/docs/reverse-proxy/caddy">
+Установка и запуск Caddy
+</Card>
+<Card title="Nginx" href="/ru/docs/reverse-proxy/nginx">
+Сертификат и конфигурация Nginx
+</Card>
+<Card title="Traefik" href="/ru/docs/reverse-proxy/traefik">
+Маршруты Traefik
+</Card>
+</Cards>
+
+</Section>
+
+<Section title="Шаг 7: Способы входа" description="Telegram, Google, Яндекс и email" icon="LogIn">
+
+Способы входа клиентов включаются в панели управления: «Настройки» → «Вход в кабинет». У каждого способа есть встроенная инструкция; ниже — адреса, которые нужно указать у провайдеров.
+
+| Способ           | Где указать                                                       | Адрес                                                  |
+| ---------------- | ----------------------------------------------------------------- | ------------------------------------------------------ |
+| Telegram OAuth   | @BotFather → бот → Login Widget: Add a Redirect URI               | `https://cabinet.domain.com/login/callback/telegram`   |
+|                  | @BotFather → бот → Login Widget: Add a Trusted Origin             | `https://cabinet.domain.com`                           |
+| Google           | Google Cloud Console → Authorized redirect URIs                   | `https://cabinet.domain.com/login/callback/google`     |
+| Яндекс           | Яндекс OAuth → Redirect URI                                       | `https://cabinet.domain.com/login/callback/yandex`     |
+
+<Callout type="idea">
+Вход через Telegram-бота работает без OAuth: нужен только токен бота в «Настройки» → «Telegram-бот». Для входа по коду из письма настройте почту в том же разделе «Вход в кабинет».
+</Callout>
+
+**Mini App.** Чтобы кабинет открывался прямо в Telegram, в @BotFather выберите бота → Mini Apps, включите Main App и укажите `https://cabinet.domain.com`. Этот же адрес можно поставить в Menu Button — тогда кабинет откроется кнопкой меню в чате с ботом. Внутри Telegram клиент входит автоматически.
+
+<Callout type="warn">
+Замените `cabinet.domain.com` на ваш домен кабинета.
+</Callout>
+
+</Section>
+
+<Section title="Проверка" description="Кабинет открывается по домену" icon="CircleCheck">
+
+Откройте в браузере `https://cabinet.domain.com` — должна открыться страница входа в кабинет. Войдите любым включённым способом.
+
+Обновление кабинета описано на странице [Обновление](/ru/docs/getting-started/updating).
+
+</Section>

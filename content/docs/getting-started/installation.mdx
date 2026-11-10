@@ -17,7 +17,7 @@ sudo curl -fsSL https://get.docker.com | sh
 
 </Section>
 
-<Section title="Installation method" description="Where Remnashop runs relative to the panel" icon="Split">
+<Section title="Installation method" description="Where Remnashop runs relative to the Remnawave panel" icon="Split">
 
 <MethodSwitch same="Same server" separate="Separate servers" />
 
@@ -62,7 +62,7 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop
 </Method>
 
 ```bash title="Get the .env file"
-curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example && chmod 600 .env
 ```
 
 </Section>
@@ -168,13 +168,13 @@ DATABASE_PASSWORD=change_me # SHOULD ALREADY BE SET IN STEP 3
 ```
 
 <Callout type="idea">
-Set `REMNAWAVE_HOST` to your Remnawave panel domain. Example: `REMNAWAVE_HOST=panel.domain.com`
+Set `REMNAWAVE_HOST` to your Remnawave panel domain. Example: `REMNAWAVE_HOST=panel.domain.com`.
 </Callout>
 
 </Method>
 
 <Callout type="idea">
-`REMNAWAVE_TOKEN` must hold a panel API token. You can create one in "Remnawave Settings" → "API Tokens".
+`REMNAWAVE_TOKEN` must hold a panel API token. You can create one in “Settings” → “API Tokens” in the Remnawave panel.
 </Callout>
 
 <Callout type="warn">
@@ -249,7 +249,7 @@ docker compose up -d && docker compose logs -f -t
 ```
 
 <Callout type="idea">
-Remnashop runs several containers: the API with the dashboard, the Telegram bot, the worker and the scheduler, plus PostgreSQL and Valkey.
+Remnashop runs several containers: the API with the dashboard, the Telegram bot, `worker` and `scheduler`, plus PostgreSQL and Valkey. The bot is optional, and you can add processes under load — see [scaling](/docs/getting-started/scaling).
 </Callout>
 
 </Section>
@@ -280,7 +280,7 @@ Dynamic routing — handy if Traefik already runs on the server
 
 Once the reverse proxy is set up, open `https://shop.domain.com` (the `APP_DOMAIN` domain) in your browser and create the owner account.
 
-Then connect the Telegram bot: in the dashboard open "Settings" → "Telegram bot", paste the token from [@BotFather](https://t.me/BotFather), generate the webhook secret token and apply the changes.
+Then connect the Telegram bot: in the dashboard open “Settings” → “Telegram bot”, paste the token from [@BotFather](https://t.me/BotFather), generate the webhook secret token and apply the changes.
 
 <Callout type="idea">
 The owner account can be created only once. After that, sign-up in the dashboard is closed.

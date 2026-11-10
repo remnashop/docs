@@ -7,7 +7,7 @@ icon: RefreshCw
 Перед обновлением ознакомьтесь с [историей изменений](/ru/docs/overview/whats-new) — там описаны изменения, которые могут потребовать ваших действий.
 </Callout>
 
-<Section title="Remnashop" description="Бот, панель управления и воркер" icon="Package">
+<Section title="Remnashop" description="Бот, панель управления и фоновые задачи" icon="Package">
 
 ```bash title="Обновление и перезапуск"
 cd /opt/remnashop && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
@@ -19,10 +19,120 @@ docker image prune
 
 </Section>
 
-<Section title="Веб-кабинет" description="Кабинет пользователя в браузере" icon="Globe">
+<Section title="Веб-кабинет" description="Кабинет клиента в браузере" icon="Globe">
 
 ```bash title="Обновление и перезапуск"
 cd /opt/remnashop/cabinet && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
 ```
+
+</Section>
+
+<Section title="Переход с 0.x на 1.0" description="Новая архитектура, перенос старой базы" icon="TriangleAlert">
+
+В 1.0 полностью изменилась архитектура, поэтому команда обновления выше для перехода не подходит. Инструкция подходит для любой версии 0.x, начиная с 0.1.0. Старая база переносится автоматически при первом запуске 1.0: перед переносом Remnashop сам делает подписанную резервную копию в `backups/`, а старые таблицы сохраняет в отдельной схеме `legacy` — до их удаления перенос можно откатить.
+
+<Callout type="error" title="Остановите старую версию полностью">
+В 1.0 контейнеры `worker` и `scheduler` называются иначе (`remnashop-worker` вместо `remnashop-taskiq-worker`). Если просто подменить файлы и выполнить `docker compose up -d`, старые контейнеры продолжат работать со старым кодом на уже перенесённой базе. Останавливайте старую версию со **старым** `docker-compose.yml` и запускайте 1.0 с `--remove-orphans`.
+</Callout>
+
+**Шаг 1. Сохраните старые файлы и остановите старую версию**
+
+```bash title="Копия файлов и остановка"
+cd /opt/remnashop && cp -p .env .env.old && cp docker-compose.yml docker-compose.old.yml && docker compose down
+```
+
+**Шаг 2. Загрузите новый docker-compose.yml**
+
+Выберите тот же вариант, что стоял у вас в старой версии.
+
+```bash title="На одном сервере с панелью"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.internal.yml
+```
+
+```bash title="На отдельном сервере"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.external.yml
+```
+
+**Шаг 3. Соберите новый .env**
+
+```bash title="Новый .env и секрет JWT"
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example && chmod 600 .env .env.old && sed -i "s|^APP_JWT_SECRET=change_me$|APP_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')|" .env && nano .env
+```
+
+Перенесите из `.env.old` значения как есть:
+
+* `APP_DOMAIN`;
+* `APP_CRYPT_KEY` — **строго старый**. С другим ключом перенос остановится до начала: им зашифрованы секреты в базе;
+* `DATABASE_PASSWORD`, а также `DATABASE_USER` и `DATABASE_NAME`, если меняли, — база уже создана с этими данными, новый пароль к ней не подойдёт;
+* `REMNAWAVE_HOST`, `REMNAWAVE_TOKEN`, `REMNAWAVE_WEBHOOK_SECRET` и, если были, `REMNAWAVE_CADDY_TOKEN`, `REMNAWAVE_COOKIE`, `REMNAWAVE_CF_CLIENT_ID`, `REMNAWAVE_CF_CLIENT_SECRET`;
+* `REDIS_PASSWORD`, если был задан; если нет — сгенерируйте новый командой после списка;
+* `BOT_OWNER_ID` — допишите в конец файла. Он нужен только при переносе, чтобы понять, кто владелец; без него владельцем станет пользователь с ролью владельца из старой версии. До 0.7 эта переменная называлась `BOT_DEV_ID` — перенесите её значение в `BOT_OWNER_ID`.
+
+```bash title="Пароль Redis, если в старой версии его не было"
+sed -i "s|^# REDIS_PASSWORD=.*|REDIS_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env
+```
+
+`BOT_TOKEN`, `BOT_SECRET_TOKEN` и остальные удалённые переменные (список ниже) не переносите — они больше не читаются.
+
+**Шаг 4. Добавьте маршрут бота в обратный прокси**
+
+В старой версии все запросы шли в `remnashop:5000`. В 1.0 вебхук Telegram `/api/v1/telegram` обслуживает отдельный контейнер `remnashop-telegram:5001` — добавьте для него маршрут, остальное оставьте как было. Готовые конфигурации: [Caddy](/ru/docs/reverse-proxy/caddy), [Nginx](/ru/docs/reverse-proxy/nginx), [Traefik](/ru/docs/reverse-proxy/traefik).
+
+<Callout type="idea">
+Вебхуки платёжных систем и панели Remnawave остались на прежних адресах — в их настройках ничего менять не нужно.
+</Callout>
+
+**Шаг 5. Запустите 1.0**
+
+```bash title="Запуск и перенос базы"
+docker compose pull && docker compose up -d --remove-orphans && docker compose logs -f remnashop
+```
+
+В логах `remnashop` появится отчёт о переносе: что перенесено, что пропущено и почему, путь к резервной копии. Контейнеры бота, `worker` и `scheduler` запускаются после окончания переноса.
+
+<Callout type="warn">
+На большой базе перенос может идти дольше 10 минут. Если `docker compose up` сообщит, что `remnashop` unhealthy, дождитесь отчёта в логах и выполните `docker compose up -d --remove-orphans` ещё раз.
+</Callout>
+
+**Шаг 6. Войдите в панель управления**
+
+Откройте в браузере `https://shop.domain.com` (домен из `APP_DOMAIN`) и задайте логин и пароль владельца — они привяжутся к перенесённому аккаунту владельца со всеми его данными. Затем в «Настройки» → «Telegram-бот» вставьте токен бота, сгенерируйте секрет вебхука и перезапустите бота кнопкой в панели управления. `BOT_OWNER_ID` из `.env` после этого можно удалить.
+
+**Шаг 7. Удалите данные старой версии**
+
+Когда убедитесь, что всё работает, удалите схему `legacy` пунктом «Delete old-version data» в [CLI](/ru/docs/getting-started/rescue-cli):
+
+```bash title="CLI"
+docker compose run --rm remnashop cli
+```
+
+<Accordions>
+<Accordion title="Перенос остановился с ошибкой">
+Причина — в логах `remnashop`. Если ошибка случилась после резервной копии, в `backups/` появится файл `legacy-migration-failed.txt` — пока он есть, `remnashop` не пытается переносить базу заново. Устраните причину и запустите перенос пунктом «Migrate data from the old version» в CLI или удалите этот файл и выполните `docker compose up -d`.
+</Accordion>
+<Accordion title="Вернуться на старую версию">
+Остановите 1.0 (`docker compose down`), выберите в CLI «Roll back the migration», затем верните старые файлы и запустите старую версию:
+
+```bash title="Возврат на старую версию"
+mv .env.old .env && mv docker-compose.old.yml docker-compose.yml && docker compose up -d --remove-orphans
+```
+
+Откат возвращает данные старой версии в том виде, в каком они были до переноса: всё, что изменилось в 1.0, теряется. Если до переноса стояла не последняя сборка 0.8, CLI предложит вместо этого восстановить резервную копию до переноса пунктом «Restore backup» — следуйте его подсказке. После «Delete old-version data» откатиться можно только из резервной копии.
+</Accordion>
+</Accordions>
+
+**Что изменилось:**
+
+* Управление магазином переехало из бота в панель управления по адресу из `APP_DOMAIN`. Бот стал необязательным, вместо одного процесса теперь несколько: `api`, `telegram`, `worker` и `scheduler`.
+* Аккаунт владельца входит в панель управления по логину и паролю, `BOT_OWNER_ID` нужен только при переносе.
+* Токен бота, секрет вебхука и прокси вводятся в панели управления в настройках бота и хранятся в базе в зашифрованном виде.
+* Языки, команды бота, баннеры и тексты настраиваются в панели управления. Баннеры и `custom.ftl` из папки `assets` старой версии не переносятся.
+* Документация API открывается из панели управления, отдельный переключатель Swagger больше не нужен.
+
+**Переменные `.env`:**
+
+Удалены: `BOT_TOKEN`, `BOT_DEV_ID`, `BOT_SECRET_TOKEN`, `BOT_PROXY_URL`, `BOT_SUPPORT_USERNAME`, `BOT_MINI_APP`, `BOT_SETUP_COMMANDS`, `BOT_USE_BANNERS`, `BOT_RESET_WEBHOOK`, `BOT_DROP_PENDING_UPDATES`, `APP_LOCALES`, `APP_DEFAULT_LOCALE`, `APP_SWAGGER_ENABLED`.
+
+Добавлены: `APP_JWT_SECRET` (обязательна), `APP_SECURE_COOKIES`, `APP_METRICS_ENABLED`, `APP_WORKERS`, `CABINET_DOMAIN`, `CABINET_PROXY_SECRET`, `WORKER_PROCESSES`, `WORKER_MAX_ASYNC_TASKS`, `DATABASE_MAX_CONNECTIONS`, таймауты базы данных, `BOT_API_URL`, `REMNAWAVE_USERNAME_PREFIX`, `COMPOSE_PROFILES`, `ADMIN_API_PORT` — описание в [переменных окружения](/ru/docs/getting-started/environment).
 
 </Section>

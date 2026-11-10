@@ -1,11 +1,12 @@
 ---
 title: Rescue CLI
 icon: LifeBuoy
+navTitle: Rescue
 ---
 
-The rescue CLI gets you back into the dashboard when signing in is no longer possible: password login is switched off, the owner is locked out by the IP allowlist, the password is lost, or `APP_CRYPT_KEY` was changed. It runs on the server and needs no dashboard session.
+<Section title="Opening the CLI" description="When you need it and how to start it" icon="Terminal">
 
-<Section title="Launch" description="A separate container with the menu only" icon="Terminal">
+The rescue CLI gets you back into the dashboard when signing in is no longer possible: password login is switched off, the owner is locked out by the IP allowlist, the password is lost, or `APP_CRYPT_KEY` was changed. It runs on the server and needs no dashboard session.
 
 ```bash title="Open the rescue CLI"
 cd /opt/remnashop && docker compose run --rm remnashop cli
@@ -23,6 +24,9 @@ The command starts a one-off container next to the running ones and removes it o
 | 2 | Restore backup | Restores the database from a dump in the backup directory or from a given path. All other database connections are terminated and the current database is overwritten. |
 | 3 | Reset owner access | The owner gets a new generated password, the IP allowlist is cleared, all sessions are signed out, passkeys, linked OAuth accounts and Telegram are removed. API tokens are kept. Password login is switched on. |
 | 4 | Reset encrypted secrets | `APP_CRYPT_KEY` no longer matches the database. Erases the bot token and proxy, payment gateway credentials (gateways are switched off), OAuth clients, SMTP passwords, the captcha secret and the web push keys. |
+| 5 | Migrate data from the old version | The old-version database (any 0.x) wasn't migrated automatically or the migration stopped with an error — runs it by hand. See [updating](/docs/getting-started/updating#moving-from-08-to-10). |
+| 6 | Roll back the migration | Drops the new schema and brings the old-version data back from the `legacy` schema — for going back to that version. |
+| 7 | Delete old-version data | Permanently deletes the `legacy` schema with the old-version data once 1.0 is verified. |
 
 Every action is recorded in the audit log.
 

@@ -30,6 +30,10 @@ Remnashop принимает запросы в двух контейнерах. 
 Имена `remnashop` и `remnashop-telegram` доступны только внутри Docker-сети. Если прокси запущен не в Docker, используйте `127.0.0.1:5000` и `127.0.0.1:5001`.
 </Callout>
 
+<Callout type="warn" title="Переходите с 0.x?">
+В старой версии все запросы шли в `remnashop:5000`. Оставьте этот маршрут и добавьте `/api/v1/telegram` → `remnashop-telegram:5001`, иначе бот не будет получать сообщения. В 0.7–0.8 порт `5001` занимала база данных — уберите его из старых правил, если он там был. Полный порядок перехода — в [обновлении](/ru/docs/getting-started/updating).
+</Callout>
+
 </Section>
 
 <Section title="Выберите прокси" description="Подойдёт любой из трёх" icon="Route">
@@ -45,5 +49,9 @@ Remnashop принимает запросы в двух контейнерах. 
     Динамическая маршрутизация — удобно, если Traefik уже стоит на сервере
   </Card>
 </Cards>
+
+<Callout type="warn">
+Если домены проксируются через Cloudflare (жёлтое облако), выполните также настройку со страницы [Cloudflare](/ru/docs/reverse-proxy/cloudflare), иначе Remnashop будет видеть вместо клиентов адреса Cloudflare.
+</Callout>
 
 </Section>

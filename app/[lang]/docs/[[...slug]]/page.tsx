@@ -9,15 +9,15 @@ import {
 import { Footer } from 'fumadocs-ui/layouts/docs/page/slots/footer';
 import { FullSearchTrigger } from 'fumadocs-ui/layouts/shared/slots/search-trigger';
 import { notFound } from 'next/navigation';
+import { icons as lucideIcons } from 'lucide-react';
 import { getMDXComponents } from '@/components/mdx';
 import type { Metadata } from 'next';
 import { createRelativeLink } from 'fumadocs-ui/mdx';
 import { gitConfig } from '@/lib/shared';
 import { withSectionHeadings } from '@/lib/section-toc';
 
-// The same glass pill as the search beside them (the dashboard header's HeaderSearch).
 const pageButton =
-  'h-9 gap-2 rounded-full border border-fd-border bg-white/[0.05] px-3.5 text-[13px] font-normal text-fd-muted-foreground hover:bg-white/[0.08] hover:text-fd-foreground [&_svg]:size-4';
+  'h-9 gap-1.5 rounded-full border border-fd-border bg-white/[0.03] px-3.5 text-[13px] font-medium text-fd-foreground/90 hover:bg-white/[0.06] hover:text-fd-foreground [&_svg]:size-4';
 
 export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>) {
   const { lang, slug } = await props.params;
@@ -26,6 +26,7 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
 
   const MDX = page.data.body;
   const markdownUrl = getPageMarkdownUrl(page).url;
+  const PageIcon = page.data.icon ? lucideIcons[page.data.icon as keyof typeof lucideIcons] : undefined;
 
   // Depth 4 and below stays out of the table of contents: the install steps live inside tabs,
   // so listing them would repeat every step once per tab.
@@ -34,14 +35,19 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
 
   return (
     <DocsPage toc={toc} full={page.data.full} breadcrumb={{ enabled: false }} footer={{ enabled: false }}>
-      {/* The dashboard card's header (widgets/header/Header.tsx): the page title, then the
-          search pill and the page actions. It stays put; the content scrolls below it. The
-          actions don't grow, so justify-between keeps them right beside the title and starts
-          them at the left edge when they wrap to a line of their own. */}
-      <header className="docs-header flex flex-wrap items-center justify-between gap-3 py-3 md:gap-5 md:py-5">
-        <h1 className="shrink-0 text-[21px] font-bold tracking-tight">{page.data.title}</h1>
-        <div className="flex min-w-0 items-center gap-3.5">
-          <FullSearchTrigger className="hidden h-9 w-56 min-w-28 shrink rounded-full border-fd-border bg-white/[0.05] px-3.5 ps-3.5 text-[13px] hover:bg-white/[0.08] md:inline-flex" />
+      {/* stays put while the body scrolls; below xl the actions wrap to a line of their own */}
+      <header className="docs-header py-3 md:py-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 md:gap-5 xl:glass-panel xl:h-12 xl:flex-nowrap xl:rounded-full xl:p-1.5">
+        <div className="flex shrink-0 items-center gap-2.5">
+          {PageIcon ? (
+            <span className="border-fd-border hidden size-9 shrink-0 items-center justify-center rounded-full border bg-white/[0.05] xl:flex">
+              <PageIcon className="size-4" />
+            </span>
+          ) : null}
+          <h1 className="shrink-0 text-[21px] font-bold tracking-tight xl:text-[17px] xl:font-semibold">{page.data.title}</h1>
+        </div>
+        <div className="flex min-w-0 items-center gap-2">
+          <FullSearchTrigger className="hidden h-9 w-56 min-w-28 shrink gap-2.5 rounded-full border-fd-border bg-white/[0.03] px-3 ps-3 text-[13px] font-medium hover:bg-white/[0.06] hover:text-fd-foreground md:inline-flex" />
           <div className="flex shrink-0 items-center gap-2">
             <MarkdownCopyButton markdownUrl={markdownUrl} className={pageButton} />
             <ViewOptionsPopover
@@ -51,19 +57,22 @@ export default async function Page(props: PageProps<'/[lang]/docs/[[...slug]]'>)
             />
           </div>
         </div>
+        </div>
       </header>
-      {/* The card's scrolling body, under the header like the dashboard's page area. The
-          previous/next links are drawn here, inside it, rather than by DocsPage after it. */}
-      <div className="docs-scroll flex flex-col gap-4">
+      {/* the previous/next links are drawn inside the scrolling body, not by DocsPage after it */}
+      <div className="docs-scroll flex flex-col gap-5">
         <DocsDescription className="mb-0">{page.data.description}</DocsDescription>
         <DocsBody>
           <MDX
-            components={getMDXComponents({
-              a: createRelativeLink(source, page),
-            })}
+            components={getMDXComponents(
+              {
+                a: createRelativeLink(source, page),
+              },
+              lang,
+            )}
           />
         </DocsBody>
-        <Footer className="docs-pager mt-6" />
+        <Footer className="docs-pager" />
       </div>
     </DocsPage>
   );

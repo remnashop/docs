@@ -4,27 +4,26 @@ icon: SlidersHorizontal
 navTitle: .env variables
 ---
 
-<Section title="General" description="Domain, encryption and access" icon="Settings">
+<Section title="General" description="Domain, encryption and sessions" icon="Settings">
 
 | Variable              | Required | Default                 | Description                                                                                                                               |
 | --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `APP_DOMAIN`          | <Yes />  | —                       | Remnashop domain without HTTP/HTTPS and without trailing slash. The dashboard is served on it, and it is the base for Telegram and payment webhook URLs and OAuth redirects.                                                              |
 | `APP_CRYPT_KEY`       | <Yes />  | —                       | Fernet key for encrypting sensitive data in the database. Generate with `openssl rand -base64 32`. Keep a copy off the server and never change it after the first start: admin passwords stop working, the bot token, payment gateway keys and OAuth secrets can no longer be decrypted, and old backups fail the check on restore. |
 | `APP_JWT_SECRET`      | <Yes />  | —                       | Secret for signing JWTs. At least 32 characters. Generate with `openssl rand -base64 48`. Do not reuse `APP_CRYPT_KEY` here.              |
-| `APP_METRICS_ENABLED` | <No />   | `false`                 | Enable Prometheus metrics on the api and worker processes.                                                                                |
 | `APP_ORIGINS`         | <No />   | —                       | Comma-separated list of allowed CORS origins.                                                                                             |
 | `APP_SECURE_COOKIES`  | <No />   | `true`                  | Require HTTPS for session cookies. Set `false` only for local development over HTTP.                                                      |
-| `APP_WEB_CABINET_URL` | <No />   | —                       | Public URL of the web cabinet. Example: `https://cabinet.example.com`                                                                     |
 
 </Section>
 
 <Section title="Remnawave" description="Connecting to the panel" icon="Server">
 
-| Variable                     | Required | Default                 | Description                                                                                                                                      |
-| ---------------------------- | :------: | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `REMNAWAVE_TOKEN`            | <Yes />  | —                       | Remnawave API token. Created in the panel: Settings → API Tokens.                                                                                |
 | `REMNAWAVE_WEBHOOK_SECRET`   | <Yes />  | —                       | Secret token for verifying webhooks from Remnawave. Must match `WEBHOOK_SECRET_HEADER` in the panel's `.env`.                                    |
 | `REMNAWAVE_HOST`             | <No />   | `http://remnawave:3000` | Host, Docker service name or full URL of the Remnawave API. Without a scheme, a domain gets `https://`, anything else `http://` and port `3000`. |
+| `REMNAWAVE_USERNAME_PREFIX`  | <No />   | `rs_`                   | Start of the usernames the shop creates in the panel: 1–16 of `a-z`, `0-9` and `_`. Set a different one for each shop sharing a panel. Don't change it once the shop has users. |
 | `REMNAWAVE_CADDY_TOKEN`      | <No />   | —                       | Token for authentication via Caddy.                                                                                                              |
 | `REMNAWAVE_COOKIE`           | <No />   | —                       | Cookie for requests in `key=value` format.                                                                                                       |
 | `REMNAWAVE_CF_CLIENT_ID`     | <No />   | —                       | Cloudflare Access Client ID.                                                                                                                     |
@@ -34,8 +33,8 @@ navTitle: .env variables
 
 <Section title="Database" description="PostgreSQL and the connection pool" icon="Database">
 
-| Variable                                  | Required | Default        | Description                                               |
-| ----------------------------------------- | :------: | -------------- | --------------------------------------------------------- |
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `DATABASE_PASSWORD`                       | <Yes />  | —              | Password for connecting to PostgreSQL.                    |
 | `DATABASE_HOST`                           | <No />   | `remnashop-db` | Database host.                                            |
 | `DATABASE_PORT`                           | <No />   | `5432`         | Database port.                                            |
@@ -43,21 +42,23 @@ navTitle: .env variables
 | `DATABASE_USER`                           | <No />   | `remnashop`    | Database user.                                            |
 | `DATABASE_POOL_SIZE`                      | <No />   | `10`           | Connection pool size.                                     |
 | `DATABASE_MAX_OVERFLOW`                   | <No />   | `20`           | Maximum additional connections beyond the pool.           |
+| `DATABASE_MAX_CONNECTIONS`                | <No />   | `200`          | PostgreSQL `max_connections` set by docker-compose; must fit every process's pool. |
 | `DATABASE_POOL_TIMEOUT`                   | <No />   | `30`           | Timeout for waiting for a connection from the pool (sec). |
 | `DATABASE_POOL_RECYCLE`                   | <No />   | `1800`         | Connection lifetime in the pool (sec).                    |
 | `DATABASE_ECHO`                           | <No />   | `false`        | Log SQL queries.                                          |
 | `DATABASE_ECHO_POOL`                      | <No />   | `false`        | Log connection pool events.                               |
 | `DATABASE_STATEMENT_TIMEOUT_MS`           | <No />   | `60000`        | Statement timeout enforced by PostgreSQL (ms).            |
 | `DATABASE_IDLE_IN_TRANSACTION_TIMEOUT_MS` | <No />   | `300000`       | Idle-in-transaction timeout enforced by PostgreSQL (ms).  |
-| `DATABASE_COMMAND_TIMEOUT_S`              | <No />   | `30`           | Command timeout in the asyncpg driver (sec).              |
+| `DATABASE_LOCK_TIMEOUT_MS`                | <No />   | `30000`        | Lock wait timeout enforced by PostgreSQL (ms).            |
+| `DATABASE_COMMAND_TIMEOUT_S`              | <No />   | `75`           | Command timeout in the asyncpg driver (sec).              |
 | `DATABASE_CONNECT_TIMEOUT_S`              | <No />   | `10`           | Connect timeout in the asyncpg driver (sec).              |
 
 </Section>
 
 <Section title="Redis" description="Cache and queues" icon="Layers">
 
-| Variable         | Required | Default           | Description            |
-| ---------------- | :------: | ----------------- | ---------------------- |
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `REDIS_HOST`     | <No />   | `remnashop-redis` | Redis host.            |
 | `REDIS_PORT`     | <No />   | `6379`            | Redis port.            |
 | `REDIS_NAME`     | <No />   | `0`               | Redis database number. |
@@ -65,14 +66,56 @@ navTitle: .env variables
 
 </Section>
 
-<Section title="Logging" description="Level, rotation and retention" icon="ScrollText">
+<Section title="API" description="Processes and the dashboard-only api" icon="Cpu">
 
-| Variable          | Required | Default  | Description                                                 |
-| ----------------- | :------: | -------- | ----------------------------------------------------------- |
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_WORKERS`         | <No />   | `1`                     | Number of api processes (`uvicorn --workers`); each opens its own database pool.                                                          |
+| `COMPOSE_PROFILES`    | <No />   | —                       | `admin-api` starts a second api for the dashboard only (`remnashop-admin-api`); point the dashboard domain at it.                          |
+| `ADMIN_API_PORT`      | <No />   | `5002`                  | Port of `remnashop-admin-api` on `127.0.0.1`.                                                                                             |
+
+</Section>
+
+<Section title="Worker" description="Background tasks" icon="Cog">
+
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `WORKER_PROCESSES`                        | <No />   | `1`            | Number of worker processes; each opens its own pool and runs up to `WORKER_MAX_ASYNC_TASKS` tasks. |
+| `WORKER_MAX_ASYNC_TASKS`                  | <No />   | `25`           | How many tasks the worker runs at once; keep it below the pool. |
+
+</Section>
+
+<Section title="Telegram bot" description="Connecting to the Bot API" icon="Bot">
+
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `BOT_API_URL`         | <No />   | `https://api.telegram.org` | Bot API address: a self-hosted `telegram-bot-api` server instead of Telegram's.                                                        |
+
+</Section>
+
+<Section title="Web cabinet" description="Domain and shared secret" icon="Globe">
+
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `CABINET_DOMAIN`      | <No />   | —                       | Web cabinet domain without HTTP/HTTPS and without a trailing slash. Example: `cabinet.example.com`. Leave unset if you don't run the cabinet. |
+| `CABINET_PROXY_SECRET` | <No />  | —                       | Secret shared with the web cabinet: the same value as `CABINET_PROXY_SECRET` in the cabinet's `.env`. Required if the cabinet is deployed. |
+
+</Section>
+
+<Section title="Logs and metrics" description="Logging and Prometheus" icon="ScrollText">
+
+| Variable              | Required | Default                 | Description                                                                                                                               |
+| --------------------- | :------: | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `LOG_TO_FILE`     | <No />   | `true`   | Write logs to file.                                         |
-| `LOG_LEVEL`       | <No />   | `DEBUG`  | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
+| `LOG_LEVEL`       | <No />   | `INFO`   | Log level: `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`. |
 | `LOG_ROTATION`    | <No />   | `100MB`  | Log file rotation condition. Example: `100MB` or `00:00`.   |
 | `LOG_COMPRESSION` | <No />   | `zip`    | Compression format for archived logs.                       |
 | `LOG_RETENTION`   | <No />   | `3 days` | Retention period for archived logs.                         |
+| `APP_METRICS_ENABLED` | <No />   | `false`                 | Enable Prometheus metrics on the api and worker processes.                                                                                |
+| `APP_METRICS_PORT`    | <No />   | `9110`                  | Metrics port of the worker process (`127.0.0.1`).                                                                                         |
+
+<Callout type="warn">
+`/metrics` on the api has no authentication. The [reverse proxy configs](/docs/reverse-proxy) return 404 for it; if you write your own, block `/metrics` on the public domain too.
+</Callout>
 
 </Section>

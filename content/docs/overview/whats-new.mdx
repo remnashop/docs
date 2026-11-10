@@ -3,17 +3,65 @@ title: Changelog
 icon: Sparkles
 ---
 
-The full list of releases is also available on [GitHub](https://github.com/remnashop/remnashop/releases).
-
 <Release current>
 
 ## 1.0.0
 
-This version is in development. The release notes will be published with it.
+Remnashop 1.0 comes with a completely new architecture. Shop management has moved from the Telegram bot to the dashboard, and the bot is now one sales channel alongside the web cabinet. The full feature overview is in the [introduction](/docs/overview/introduction).
+
+<Callout type="warn">
+[How to update from previous versions](/docs/getting-started/updating#moving-from-0x-to-10)
+</Callout>
+
+**Architecture:**
+
+* **Separate processes** — `api` (REST API and dashboard), `telegram` (the bot, optional) and `worker` (background tasks)
+* **Secrets in the database** — the bot token, payment gateway keys and OAuth credentials are set in the dashboard and stored encrypted; the bot restarts from there too
+* **Event log** — built on a transactional outbox, so events are kept even through crashes
+* **Prometheus metrics** for `api` and `worker`
+* **Rescue CLI** — backup restore, owner access reset and re-enabling password sign-in
+
+**Dashboard:**
+
+* **A web dashboard instead of the in-bot admin panel** — every part of the shop is managed from the browser
+* **Overview** — a “Needs attention” block
+* **Analytics** — MRR, LTV, retention, cohorts, funnel and sources
+* **Loyalty program** — an automatic tiered discount
+* **Plan promotions** — a discount on a plan for a set period
+* **A third level** in the referral program
+* **Broadcasts** — to a Telegram channel and by email, scheduled sending
+* **Bot builder** — a window and button editor, premium emoji packs
+* **Translation editor** in the dashboard
+* **Account merge** — combining two customer accounts into one
+* **Legal documents** — public offer, user agreement and privacy policy with an acceptance log
+
+**Web cabinet:**
+
+* **A separate customer app** — in the browser or as a Telegram Mini App
+* **Sign-in** — through Telegram, Google, Yandex or an email code
+* **Self-service** — buying and renewing subscriptions, promo codes, devices and the referral program
+
+**Payments:**
+
+* **9 new payment gateways** — RollyPay, Antilopay, Paypalych, RioPay, AuraPay, SeverPay, Lava, CloudPayments and PayPear (23 in total)
+* **Telegram Stars refunds** from the dashboard
+* **Payment reconciliation** — checking paid transactions and issuing a subscription manually for an unpaid one
+
+**Notifications:**
+
+* **For admins** — in the dashboard and by web push; each admin chooses their own channels
+* **For customers** — by email, plus a notice of sign-in from a new device
+
+**Security:**
+
+* **Dashboard sign-in** — with a password, passkey, Telegram, GitHub or OpenID Connect
+* **Access control** — a permission set per admin and API tokens with limited permissions and an expiry
+* **Session protection** — IP allowlist, active sessions and session theft detection
+* **API documentation** (Swagger and ReDoc) — opens from the dashboard with a one-time ticket
 
 </Release>
 
-<Release>
+<Release tag="v0.8.2">
 
 ## 0.8.2 (June 23, 2026)
 
@@ -39,7 +87,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.8.1">
 
 ## 0.8.1 (June 19, 2026)
 
@@ -66,7 +114,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.8.0">
 
 ## 0.8.0 (June 19, 2026)
 
@@ -127,7 +175,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.7.5">
 
 ## 0.7.5 (April 10, 2026)
 
@@ -148,7 +196,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.7.4">
 
 ## 0.7.4 (April 7, 2026)
 
@@ -182,7 +230,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.7.3">
 
 ## 0.7.3 (March 29, 2026)
 
@@ -200,7 +248,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.7.2">
 
 ## 0.7.2 (March 27, 2026)
 
@@ -229,7 +277,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.7.1">
 
 ## 0.7.1 (March 25, 2026)
 
@@ -263,7 +311,7 @@ This version is in development. The release notes will be published with it.
 
 </Release>
 
-<Release>
+<Release tag="v0.7.0">
 
 ## 0.7.0 (March 24, 2026)
 

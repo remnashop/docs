@@ -36,7 +36,7 @@ export const source = loader({
   baseUrl: docsRoute,
   i18n,
   source: docs.toFumadocsSource(),
-  // `icon:` in a page's frontmatter names a lucide icon, the dashboard sidebar's set.
+  // `icon:` in a page's frontmatter names a lucide icon.
   plugins: [lucideIconsPlugin(), navTitlePlugin],
 });
 

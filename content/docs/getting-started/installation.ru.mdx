@@ -17,7 +17,7 @@ sudo curl -fsSL https://get.docker.com | sh
 
 </Section>
 
-<Section title="Способ установки" description="Где работает Remnashop относительно панели" icon="Split">
+<Section title="Способ установки" description="Где работает Remnashop относительно панели Remnawave" icon="Split">
 
 <MethodSwitch same="На одном сервере" separate="На разных серверах" />
 
@@ -35,7 +35,7 @@ sudo curl -fsSL https://get.docker.com | sh
 
 </Section>
 
-<Section title="Шаг 1: Создание директории проекта" description="Каталог для файлов Remnashop" icon="FolderPlus">
+<Section title="Шаг 1: Создание директории проекта" description="Директория для файлов Remnashop" icon="FolderPlus">
 
 ```bash title="Создание директории проекта"
 mkdir /opt/remnashop && cd /opt/remnashop
@@ -62,7 +62,7 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop
 </Method>
 
 ```bash title="Получение файла .env"
-curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example && chmod 600 .env
 ```
 
 </Section>
@@ -80,7 +80,7 @@ sed -i "s|^DATABASE_PASSWORD=change_me$|DATABASE_PASSWORD=$(openssl rand -hex 24
 ```
 
 <Callout type="warn">
-Сохраните копию `APP_CRYPT_KEY` вне сервера, рядом с бэкапами базы данных, и никогда не меняйте его после первого запуска. Если ключ потерян или изменён, перестанут работать пароли, токен бота, секреты OAuth и данные платёжных шлюзов, а существующие бэкапы не восстановятся.
+Сохраните копию `APP_CRYPT_KEY` вне сервера, рядом с резервными копиями базы данных, и никогда не меняйте его после первого запуска. Если ключ потерян или изменён, перестанут работать пароли, токен бота, секреты OAuth и данные платёжных шлюзов, а существующие бэкапы не восстановятся.
 </Callout>
 
 </Section>
@@ -168,13 +168,13 @@ DATABASE_PASSWORD=change_me # УЖЕ ДОЛЖЕН БЫТЬ ЗАДАН В 3 ША�
 ```
 
 <Callout type="idea">
-В переменной `REMNAWAVE_HOST` укажите домен вашей панели Remnawave. Пример: `REMNAWAVE_HOST=panel.domain.com`
+В переменной `REMNAWAVE_HOST` укажите домен вашей панели Remnawave. Пример: `REMNAWAVE_HOST=panel.domain.com`.
 </Callout>
 
 </Method>
 
 <Callout type="idea">
-В переменной `REMNAWAVE_TOKEN` должен быть установлен API-токен панели. Создать токен можно в «Настройки Remnawave» → «API Токены».
+В переменной `REMNAWAVE_TOKEN` должен быть установлен API-токен панели. Создать токен можно в «Настройки» → «API Токены» в панели Remnawave.
 </Callout>
 
 <Callout type="warn">
@@ -249,7 +249,7 @@ docker compose up -d && docker compose logs -f -t
 ```
 
 <Callout type="idea">
-Remnashop запускает несколько контейнеров: API с панелью управления, Telegram-бота, воркер и планировщик, а также PostgreSQL и Valkey.
+Remnashop запускает несколько контейнеров: API с панелью управления, Telegram-бота, `worker` и `scheduler`, а также PostgreSQL и Valkey. Бот необязателен, а под нагрузкой процессов можно добавить — подробнее в [масштабировании](/ru/docs/getting-started/scaling).
 </Callout>
 
 </Section>

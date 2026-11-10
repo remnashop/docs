@@ -1,0 +1,154 @@
+---
+title: Scaling
+icon: Gauge
+---
+
+<Section title="Processes" description="What Remnashop is made of" icon="Boxes">
+
+Remnashop runs in several containers. Each Python process uses one CPU core, so extra cores only help once you run more processes.
+
+| Container             | What it does                                                         | Memory         | Required       |
+| --------------------- | -------------------------------------------------------------------- | -------------- | -------------- |
+| `remnashop`           | API, dashboard, Remnawave panel and payment gateway webhooks         | 220–450 MB     | yes            |
+| `remnashop-worker`    | Background tasks: events, notifications, broadcasts, sync            | ~180 MB per process | yes       |
+| `remnashop-scheduler` | Starts scheduled tasks                                               | ~140 MB        | yes, exactly one |
+| `remnashop-telegram`  | Telegram bot                                                         | 340–390 MB     | no             |
+| `remnashop-admin-api` | A separate api for the dashboard only                                | 220–390 MB     | no, off by default |
+
+</Section>
+
+<Section title="What to scale" description="By symptom" icon="Activity">
+
+| Symptom | What to do |
+| ------- | ---------- |
+| The dashboard and the cabinet take seconds to respond, the `remnashop` container's CPU near 100% | Raise `APP_WORKERS` or enable the dashboard api |
+| Notifications and broadcasts lag, `remnashop-worker` CPU near 100% | Raise `WORKER_PROCESSES` |
+| The bot replies late, `remnashop-telegram` logs show 503 responses | The bot is CPU-bound: don't share its core with api and `worker`, check that `LOG_LEVEL=INFO` |
+| `connection pool exhausted` or pool timeouts in the logs | Recount the database connections (below) and raise `DATABASE_MAX_CONNECTIONS` |
+
+Go from cheap to expensive: more processes on the same server first, then the dashboard api, then a server with 4–8 cores and an external PostgreSQL.
+
+</Section>
+
+<Section title="More processes" description="APP_WORKERS and WORKER_PROCESSES" icon="Cpu">
+
+Set the process counts in the Remnashop `.env` — roughly one core per process:
+
+```bash title=".env contents"
+# api processes (uvicorn --workers)
+APP_WORKERS=2
+
+# worker processes; each runs up to WORKER_MAX_ASYNC_TASKS tasks at once
+WORKER_PROCESSES=2
+```
+
+```bash title="Apply the changes"
+cd /opt/remnashop && docker compose up -d
+```
+
+<Callout type="idea">
+`APP_WORKERS` applies to `remnashop-admin-api` too, if it's enabled. `scheduler` is always a single one: several copies would run scheduled tasks twice.
+</Callout>
+
+</Section>
+
+<Section title="Database connections" description="DATABASE_MAX_CONNECTIONS" icon="Database">
+
+Each process opens up to `DATABASE_POOL_SIZE + DATABASE_MAX_OVERFLOW` connections, 10 + 20 = 30 by default. Their sum, plus headroom for migrations, backups and the rescue CLI, has to fit in `DATABASE_MAX_CONNECTIONS` (200 by default):
+
+```text title="Calculation"
+30 × (APP_WORKERS            # api
+    + APP_WORKERS            # admin-api, if enabled
+    + 1                      # telegram, if running
+    + WORKER_PROCESSES       # worker
+    + 1)                     # scheduler
+  + ~10 headroom  ≤  DATABASE_MAX_CONNECTIONS
+```
+
+For example, `APP_WORKERS=2`, the admin-api enabled and `WORKER_PROCESSES=2` give 30 × 8 + 10 = 250 — raise `DATABASE_MAX_CONNECTIONS` to 260 or shrink the pools.
+
+<Callout type="warn">
+`DATABASE_MAX_CONNECTIONS` does nothing for an external database: its owner sets the connection limit.
+</Callout>
+
+</Section>
+
+<Section title="Dashboard api" description="COMPOSE_PROFILES=admin-api" icon="Split">
+
+A second api container on the same image serves only the dashboard. When the cabinet, the bot or the webhooks load the main api, the dashboard keeps responding. A small shop doesn't need it.
+
+Enable it in the Remnashop `.env` and restart:
+
+```bash title=".env contents"
+COMPOSE_PROFILES=admin-api
+```
+
+```bash title="Start"
+cd /opt/remnashop && docker compose up -d
+```
+
+Then send everything except the webhooks to `remnashop-admin-api` in your reverse proxy. The Remnawave panel and payment gateway webhooks stay on `remnashop`, the Telegram webhook on `remnashop-telegram`. For Caddy:
+
+```text title="Caddyfile"
+https://SHOP_DOMAIN {
+        encode
+        handle /api/v1/telegram {
+                reverse_proxy http://remnashop-telegram:5001
+        }
+        handle /api/v1/remnawave {
+                reverse_proxy http://remnashop:5000
+        }
+        handle /api/v1/payments/* {
+                reverse_proxy http://remnashop:5000
+        }
+        handle /metrics {
+                respond 404
+        }
+        handle {
+                reverse_proxy http://remnashop-admin-api:5000
+        }
+}
+```
+
+<Callout type="idea">
+If your proxy doesn't run in Docker, use `127.0.0.1:5002` (the port is set by `ADMIN_API_PORT`). For Nginx and Traefik, add the same routes modelled on the [ready-made configurations](/docs/reverse-proxy).
+</Callout>
+
+<Callout type="warn">
+A cabinet on the same server reaches `remnashop` directly over the Docker network and doesn't load the dashboard api. A cabinet on a separate server goes through the Remnashop domain and lands on `remnashop-admin-api` along with the dashboard.
+</Callout>
+
+</Section>
+
+<Section title="Without the Telegram bot" description="Web cabinet only" icon="BotOff">
+
+If customers only use the web cabinet, you can skip the `remnashop-telegram` container: no other container depends on it, and the server frees 340–390 MB of memory.
+
+Create `docker-compose.override.yml` next to `docker-compose.yml`. Docker Compose picks it up on its own, and updating Remnashop doesn't overwrite it:
+
+```yaml title="docker-compose.override.yml"
+services:
+  remnashop-telegram:
+    profiles: ["bot"]
+```
+
+```bash title="Stop the bot"
+cd /opt/remnashop && docker compose rm -sf remnashop-telegram && docker compose up -d
+```
+
+To bring the bot back, delete `docker-compose.override.yml` and run `docker compose up -d`.
+
+Without the bot container these don't work:
+
+* the bot itself and its Mini App button;
+* cabinet sign-in by confirming in the bot.
+
+Cabinet sign-in through Telegram OAuth, Google, Yandex and email codes works as usual.
+
+While no bot token is set, customer notifications go by email, and admin notifications to the dashboard and by web push.
+
+<Callout type="warn">
+Don't set a bot token in the dashboard while the bot is off: without a running container the webhook is never set, and “Needs attention” shows a “Telegram bot webhook is not working” warning. The process card in the overview marks `telegram` as not running — that's expected.
+</Callout>
+
+</Section>

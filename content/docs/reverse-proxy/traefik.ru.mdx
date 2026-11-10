@@ -9,7 +9,7 @@ icon: Server
 Для продолжения вам необходимо иметь зарегистрированное доменное имя.
 </Callout>
 
-<Section title="Способ установки" description="Где работает Remnashop относительно панели" icon="Split">
+<Section title="Способ установки" description="Где работает Remnashop относительно панели Remnawave" icon="Split">
 
 <MethodSwitch same="На одном сервере" separate="На разных серверах" />
 
@@ -78,7 +78,7 @@ mkdir -p /opt/remnashop/traefik && cd /opt/remnashop/traefik && nano docker-comp
 ```yaml title="docker-compose.yml"
 services:
     traefik:
-        image: traefik:latest
+        image: traefik:v3
         container_name: traefik
         restart: unless-stopped
         security_opt:
@@ -91,7 +91,6 @@ services:
         environment:
             - TZ=UTC
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock:ro
             - ./traefik.yml:/traefik.yml:ro
             - ./letsencrypt:/letsencrypt
             - ./config:/config:ro
@@ -114,7 +113,6 @@ cd /opt/remnashop/traefik && nano traefik.yml
 ```yaml title="traefik.yml"
 api:
   dashboard: true
-  debug: true
 entryPoints:
   http:
     address: ":80"
@@ -125,8 +123,6 @@ entryPoints:
           scheme: https
   https:
     address: ":443"
-serversTransport:
-  insecureSkipVerify: true
 providers:
   file:
     directory: /config
@@ -182,7 +178,7 @@ http:
         certResolver: letsencrypt
       service: remnashop-telegram
     remnashop:
-      rule: "Host(`SHOP_DOMAIN`)"
+      rule: "Host(`SHOP_DOMAIN`) && !Path(`/metrics`)"
       entrypoints:
         - https
       tls:

@@ -342,8 +342,7 @@ export function ShaderBackground({ lang }: { lang: string }) {
         aria-hidden="true"
         className={`pointer-events-none fixed inset-0 -z-20 size-full ${muted ? 'hidden' : ''}`}
       />
-      {/* The dashboard's ShaderToggle: a glass IconButton with a bolt. */}
-      <button
+            <button
         type="button"
         onClick={() => writeMuted(!muted)}
         aria-label={label}

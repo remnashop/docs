@@ -2,7 +2,6 @@ import { GitHubIcon } from '@/components/icons/github';
 import { TelegramIcon } from '@/components/icons/telegram';
 import { gitConfig, telegramUrl } from '@/lib/shared';
 
-// Matches the sidebar page-tree items: the dashboard's sidebar rows.
 const row =
   'flex h-9 items-center gap-2.5 rounded-full px-3 text-[13.5px] font-medium text-fd-muted-foreground transition-colors hover:bg-white/[0.06] hover:text-fd-foreground';
 

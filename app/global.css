@@ -2,7 +2,6 @@
 @import 'fumadocs-ui/css/neutral.css';
 @import 'fumadocs-ui/css/preset.css';
 
-/* The dashboard's own palette (remnashop frontend, app/styles.css), shared by both sites. */
 @theme {
   --color-surface: #393c47;
   --color-success: #00c758;
@@ -10,7 +9,53 @@
   --color-error: #fb2c36;
 }
 
-/* The site is dark-only, so the palette lives under .dark and the class is pinned on <html>. */
+/* The panel has no backdrop-filter: the article card under it already blurs the shader. */
+@utility glass-panel {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.075), rgb(255 255 255 / 0.025));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    inset 0 0 0 1px rgb(255 255 255 / 0.07),
+    0 8px 16px -8px rgb(0 0 0 / 0.4);
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--color-surface);
+  }
+}
+
+@utility glass-control {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.06));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    inset 0 0 0 1px rgb(255 255 255 / 0.1),
+    0 6px 16px -8px rgb(0 0 0 / 0.5);
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--color-surface);
+  }
+}
+
+@utility glass-well {
+  background: rgb(0 0 0 / 0.24);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px rgb(255 255 255 / 0.08);
+}
+
+@utility glass-dialog {
+  background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+  -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  backdrop-filter: blur(40px) saturate(1.8);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    inset 0 0 0 1px rgb(255 255 255 / 0.12),
+    0 0 0 1px rgb(0 0 0 / 0.35),
+    0 40px 80px -24px rgb(0 0 0 / 0.7);
+  @media (prefers-reduced-transparency: reduce) {
+    background: var(--color-surface);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* dark-only: the palette lives under .dark, pinned on <html> */
 .dark {
   --color-fd-background: #111111;
   --color-fd-foreground: #e8ecfb;
@@ -26,14 +71,14 @@
   --color-fd-secondary: #1a1b20;
   --color-fd-secondary-foreground: #e8ecfb;
   --color-fd-accent: #22d3ee1f;
-  /* Fumadocs paints hovered text in this; the dashboard's hover is plain foreground. */
+  /* Fumadocs paints hovered text in this */
   --color-fd-accent-foreground: #e8ecfb;
   --color-fd-ring: #22d3ee;
   --color-fd-overlay: rgba(0, 0, 0, 0.6);
 }
 
 /* neutral.css re-declares these for the sidebar at a higher specificity. */
-.dark #nd-sidebar {
+.dark :is(#nd-sidebar, #nd-sidebar-mobile) {
   --color-fd-muted: #1a1b20;
   --color-fd-secondary: #1a1b20;
   --color-fd-muted-foreground: #8b93b8;
@@ -46,7 +91,7 @@ html {
   /* Safety net only: decorative layers clip themselves, since mobile Safari does not
      propagate a root-level clip to the viewport. */
   overflow-x: clip;
-  /* Fallback paint behind the shader canvas, and what Safari samples to tint its toolbar. */
+  /* fallback behind the shader canvas; Safari tints its toolbar from it */
   background-color: #111111;
 }
 
@@ -54,7 +99,7 @@ body {
   background-color: transparent;
 }
 
-/* Floating navbar island on the home layout; the docs layout uses its own header. */
+/* home layout only; the docs layout has #nd-subnav */
 #nd-nav {
   height: auto;
   padding-block: 1rem;
@@ -68,38 +113,27 @@ body {
   /* Keeps the expanding menu inside the rounded corners. */
   overflow: hidden;
   margin-inline: auto;
-  border: 1px solid var(--color-fd-border);
-  border-radius: 1.5rem;
-  background-color: rgb(57 60 71 / 0.5);
-  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  @apply glass-panel;
+  border: 0;
+  /* half the 64px row: a pill while closed; 9999px would draw the open phone menu as an oval */
+  border-radius: 2rem;
   backdrop-filter: blur(28px) saturate(1.5);
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
   transition: max-width 500ms cubic-bezier(0.075, 0.82, 0.165, 1);
 }
 
-/* Search and language, matched to the dashboard header (widgets/header): 36px glass
-   pills, 14px apart. Fumadocs renders them, so the shape is set from here. */
+/* Fumadocs renders search and language, so their shape is set here. */
 #nd-nav div:has(> [data-search-full]) {
-  gap: 0.875rem;
+  gap: 0.5rem;
 }
 
 #nd-nav [data-search-full],
 #nd-nav [data-search-full] ~ button {
   height: 2.25rem;
-  border: 1px solid var(--color-fd-border);
   border-radius: 9999px;
-  background-color: rgb(255 255 255 / 0.05);
-  color: var(--color-fd-muted-foreground);
   transition:
     background-color 150ms,
-    color 150ms,
-    border-color 150ms;
-}
-
-#nd-nav [data-search-full]:hover,
-#nd-nav [data-search-full] ~ button:hover {
-  background-color: rgb(255 255 255 / 0.08);
-  color: var(--color-fd-foreground);
+    color 150ms;
 }
 
 #nd-nav [data-search-full] svg,
@@ -108,23 +142,34 @@ body {
   height: 1rem;
 }
 
-/* HeaderSearch: a 13px placeholder and no shortcut hint (Cmd+K still opens it). */
-#nd-nav [data-search-full] {
-  gap: 0.5rem;
-  padding-inline: 0.875rem;
+#nd-nav [data-search-full],
+#nd-nav [data-search-full] ~ button {
+  border: 1px solid var(--color-fd-border);
+  background-color: rgb(255 255 255 / 0.03);
+  color: var(--color-fd-muted-foreground);
   font-size: 13px;
+  font-weight: 500;
+}
+
+#nd-nav [data-search-full]:hover,
+#nd-nav [data-search-full] ~ button:hover {
+  background-color: rgb(255 255 255 / 0.06);
+  color: var(--color-fd-foreground);
+}
+
+/* no shortcut hint; Cmd+K still opens search */
+#nd-nav [data-search-full] {
+  gap: 0.625rem;
+  padding-inline: 0.75rem;
 }
 
 #nd-nav [data-search-full] kbd {
   display: none;
 }
 
-/* LanguagePicker: the icon followed by the current code. */
 #nd-nav [data-search-full] ~ button {
   gap: 0.375rem;
-  padding-inline: 0.75rem;
-  font-size: 12.5px;
-  font-weight: 600;
+  padding-inline: 0.875rem;
 }
 
 html[lang='ru'] #nd-nav [data-search-full] ~ button::after {
@@ -135,14 +180,22 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   content: 'EN';
 }
 
-/* Icon links (GitHub, Telegram) highlight the glyph instead of painting a square behind it. */
-#nd-nav a[aria-label]:hover {
-  background-color: transparent;
-  color: var(--color-fd-primary);
+#nd-nav a[aria-label] {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  color: var(--color-fd-muted-foreground);
+  transition: color 150ms;
 }
 
-/* Primary nav links sit in the only direct <ul> of the row. Give them the same button
-   treatment as the language switcher, and more air between them and the brand. */
+#nd-nav a[aria-label]:hover {
+  background-color: transparent;
+  color: var(--color-fd-foreground);
+}
+
+/* primary nav links: the only direct <ul> of the row */
 #nd-nav > nav > div > ul {
   padding-inline-start: 2.5rem;
 }
@@ -164,10 +217,11 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
    collapsible mobile menu is a sibling div and needs its own animated height. */
 #nd-nav > nav > div:first-child {
   height: 4rem;
+  /* 14px, as above and below the 36px items, keeps the end ones concentric with the corners */
+  padding-inline: 0.875rem;
 }
 
-/* Set by NavbarStuck once the page is scrolled.
-   70rem lines the island up with the landing sections: max-w-6xl (72rem) minus their px-4. */
+/* set by NavbarStuck on scroll; 70rem lines up with the landing's max-w-6xl minus its px-4 */
 #nd-nav[data-stuck='true'] > nav {
   max-width: 70rem;
 }
@@ -178,18 +232,15 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   }
 }
 
-/* Space out sections in the sidebar tree; the default gap of 2px makes them read as one
-   list. Folder wrappers are the only siblings carrying these attributes, and the rule
-   never fires above the first section. */
-#nd-sidebar [data-open] + [data-open],
-#nd-sidebar [data-open] + [data-closed],
-#nd-sidebar [data-closed] + [data-open],
-#nd-sidebar [data-closed] + [data-closed] {
+/* folder wrappers are the only siblings carrying these attributes */
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-open] + [data-open],
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-open] + [data-closed],
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-closed] + [data-open],
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-closed] + [data-closed] {
   margin-block-start: 1.25rem;
 }
 
-/* Fumadocs renders the sidebar footer slot after the language select; move it above, under
-   the dashboard sidebar's footer rule. */
+/* Fumadocs renders the footer slot after the language select */
 #nd-sidebar [data-social-links] {
   order: -1;
   margin-block-end: 0.75rem;
@@ -197,28 +248,22 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   padding-top: 0.875rem;
 }
 
-/* Docs: the dashboard's shell. The shader shows through a bare sidebar and table of
-   contents, and the article itself is the glass card, the dashboard's main card. It keeps
-   Fumadocs' centring, inset from its column so the shader shows around it. */
+/* The article is the glass card; the sidebar and toc sit bare on the shader. */
 #nd-page {
   /* fills its column, so the centred grid centres the card itself */
   max-width: none;
   width: calc(100% - 1rem);
   margin-block: 0 0.5rem;
   border: 1px solid var(--color-fd-border);
-  border-radius: 1.5rem;
+  border-radius: 2rem;
   background-color: rgb(57 60 71 / 0.5);
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   backdrop-filter: blur(28px) saturate(1.5);
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
 }
 
-/* Fumadocs centres sidebar, article and table of contents as one group. Here the sidebar
-   and the article are centred on the page instead, at most 1280px together like the
-   dashboard's shell (DashboardLayout), and the
-   table of contents lives in the right-hand margin: both margins are equal and at least
-   as wide as it (the toc area spans columns 4-5, so column 4 can collapse to nothing).
-   The inline grid-template from Fumadocs is why this needs !important. */
+/* Sidebar and article are centred together (at most 1280px), the toc lives in the right
+   margin. Fumadocs sets grid-template inline, hence !important. */
 #nd-docs-layout {
   grid-template-columns:
     minmax(var(--fd-toc-width), 1fr)
@@ -228,16 +273,14 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
     minmax(var(--fd-toc-width), 1fr) !important;
 }
 
-/* On a phone the card is inset 8px from the screen; the article steps in to keep its text
-   off the card's edge. */
+/* phone: the card is 8px from the screen, the article 12px inside it */
 @media (max-width: 767px) {
   #nd-page {
-    padding-inline: 1.25rem;
+    padding-inline: 0.75rem;
   }
 }
 
 @media (min-width: 768px) {
-  /* The dashboard's sidebar width (w-62). */
   #nd-docs-layout {
     --fd-sidebar-width: 248px !important;
   }
@@ -248,10 +291,8 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
     scrollbar-gutter: auto;
   }
 
-  /* Flush against the sidebar, whose own padding is the gap, and as tall as the screen
-     less its 12px margins, like the dashboard's main card: its header stays put and the
-     body under it scrolls (.docs-scroll). The page itself no longer scrolls, so the
-     sidebar and the table of contents stay put too. */
+  /* Full-height card: its header stays put and the body scrolls (.docs-scroll), so the page
+     itself doesn't. */
   #nd-page {
     width: calc(100% - 0.75rem);
     height: calc(100dvh - var(--fd-docs-row-3) - 1.5rem);
@@ -260,21 +301,59 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
     padding-bottom: 0;
   }
 
-  /* The phone drawer keeps its panel; on wider screens the sidebar is the dashboard's
-     bare one, over the shader. */
+  /* the phone drawer keeps its own panel */
   #nd-sidebar {
     border: 0;
     background-color: transparent;
   }
 }
 
-/* The phone header rides over the shader too. */
 #nd-subnav {
   border-color: transparent;
   background-color: transparent;
 }
 
-/* The TOC bar (below xl): a glass pill over the card, the article scrolling beneath it. */
+@media (max-width: 767px) {
+  /* 4rem pill plus the 8px gap above it, the card's own inset from the screen */
+  #nd-docs-layout {
+    --fd-header-height: 4.5rem !important;
+  }
+
+  #nd-subnav {
+    top: 0.5rem;
+    height: 4rem;
+    margin: 0.5rem 0.5rem 0;
+    padding-inline: 0.875rem;
+    border: 0;
+    border-radius: 2rem;
+    @apply glass-panel;
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+  }
+
+  #nd-subnav > button {
+    width: 2.25rem;
+    height: 2.25rem;
+    margin-inline-start: 0.5rem;
+    border-radius: 9999px;
+    background-color: rgb(255 255 255 / 0.06);
+    color: var(--color-fd-foreground);
+  }
+
+  #nd-subnav > button:hover {
+    background-color: rgb(255 255 255 / 0.1);
+  }
+
+  #nd-sidebar-mobile {
+    inset: 0.5rem 0.5rem 0.5rem auto;
+    border: 0;
+    border-radius: 2rem;
+    overflow: hidden;
+    @apply glass-dialog;
+  }
+}
+
+/* TOC bar, until the toc moves to the margin */
 [data-toc-popover] > header {
   width: calc(100% - 1rem);
   margin: 0.5rem auto 0;
@@ -287,7 +366,6 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
 }
 
-/* Edge to edge with the card under it, which sits flush against the sidebar. */
 @media (min-width: 768px) {
   [data-toc-popover] > header {
     width: calc(100% - 0.75rem);
@@ -295,10 +373,8 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   }
 }
 
-/* Fumadocs reserves 40px for the bar, the button alone; the pill adds its border and top
-   margin, so the slot (and --fd-docs-row-3 under it) grows to fit and the card starts
-   below the pill instead of under it. On a phone the slot also keeps the 8px gap above
-   the card; on wider screens the card's own 12px top margin is the gap. */
+/* Fumadocs reserves 40px for the bar; the pill's border and margin need more, or the card
+   starts under it. */
 @media (max-width: 1599px) {
   #nd-docs-layout:has([data-toc-popover]) {
     --fd-toc-popover-height: calc(2.625rem + 1rem) !important;
@@ -311,10 +387,8 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   }
 }
 
-/* The table of contents moves to the right-hand margin from 1600px, not Fumadocs' 1280px:
-   the shell keeps both margins as wide as it (see #nd-docs-layout above), and from 1280px
-   on that cut the card from about 1030px to 500. Until 1600px it stays the bar over the
-   card, which leaves the card around 800px when the margins come in. */
+/* The toc moves to the margin from 1600px, not 1280px: there the equal margins would squeeze
+   the card to about 500px. */
 @media (min-width: 1280px) and (max-width: 1599px) {
   #nd-docs-layout {
     --fd-toc-width: 0px !important;
@@ -329,10 +403,6 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   }
 }
 
-/* The sidebar's frame, measured off the dashboard's Sidebar.tsx: 14px padding all round
-   (p-3.5), the brand link inset 8px and 6px from the top (px-2 pt-1.5) with 10px between
-   the mark and the name, the 32px collapse button level with it, and 20px (pb-5) before
-   the next block. */
 #nd-sidebar > div:first-child {
   gap: 1.25rem;
   padding: 0.875rem 0.875rem 0;
@@ -349,13 +419,12 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   margin-top: 0.375rem;
 }
 
-/* The sidebar scrolls without showing a scrollbar, like the dashboard's (.no-scrollbar);
-   Fumadocs draws its own as a Base UI sibling of the viewport. */
-#nd-sidebar [data-id$='-scrollbar'] {
+/* Fumadocs draws its scrollbar as a Base UI sibling of the viewport. */
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-id$='-scrollbar'] {
   display: none;
 }
 
-#nd-sidebar [class*='overscroll-contain'] {
+:is(#nd-sidebar, #nd-sidebar-mobile) [class*='overscroll-contain'] {
   padding-inline: 0.875rem;
 }
 
@@ -363,10 +432,8 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   padding: 0.5rem 0.875rem 0.875rem;
 }
 
-/* The card's header and its scrolling body span the card edge to edge, undoing the
-   article's padding at each of Fumadocs' breakpoints. On wider screens the body scrolls
-   on its own and fades into the header's edge, the dashboard's .scroll-fade-top (the
-   scrollbar's 10px strip keeps an opaque mask layer, so it doesn't fade with it). */
+/* Header and body span the card edge to edge, undoing the article's padding at each
+   breakpoint. The scrollbar strip keeps an opaque mask layer, so it doesn't fade. */
 .docs-header,
 .docs-scroll {
   margin-inline: -1.25rem;
@@ -378,9 +445,7 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
 }
 
 @media (min-width: 768px) {
-  /* No gap and no header bottom padding: the body's 32px top padding is the space under
-     the header, and exactly the strip the fade covers (fully clear for 8px, then easing
-     in), so nothing is faded at rest and scrolled text is gone before the title. */
+  /* the body's top padding is exactly the strip the fade covers, so nothing is faded at rest */
   #nd-page {
     row-gap: 0;
     padding-top: 0;
@@ -393,7 +458,7 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   .docs-header,
   .docs-scroll {
     margin-inline: -1.5rem;
-    padding-inline: 1.5rem;
+    padding-inline: 1.25rem;
   }
 
   .docs-scroll {
@@ -401,24 +466,22 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    scrollbar-color: var(--color-fd-accent) transparent;
-    scrollbar-width: thin;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
     -webkit-mask-image:
-      linear-gradient(to bottom, transparent 0.5rem, black 2rem),
+      linear-gradient(to bottom, transparent 0.5rem, black 1.25rem),
       linear-gradient(black, black);
     -webkit-mask-size:
-      calc(100% - 10px) 100%,
-      10px 100%;
+      calc(100% - var(--scrollbar-size)) 100%,
+      var(--scrollbar-size) 100%;
     -webkit-mask-position: left top, right top;
     -webkit-mask-repeat: no-repeat;
     mask-image:
-      linear-gradient(to bottom, transparent 0.5rem, black 2rem),
+      linear-gradient(to bottom, transparent 0.5rem, black 1.25rem),
       linear-gradient(black, black);
     mask-size:
-      calc(100% - 10px) 100%,
-      10px 100%;
+      calc(100% - var(--scrollbar-size)) 100%,
+      var(--scrollbar-size) 100%;
     mask-position: left top, right top;
     mask-repeat: no-repeat;
   }
@@ -428,79 +491,99 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   .docs-header,
   .docs-scroll {
     margin-inline: -2rem;
-    padding-inline: 2rem;
+    padding-inline: 1.25rem;
   }
 }
 
-/* Search lives in the card's header, as in the dashboard. */
+/* 8px in every browser, Firefox's thin size: the end padding gives it up, so it runs over the
+   padding, and the fade's opaque strip is exactly as wide. */
+:root {
+  --scrollbar-size: 8px;
+}
+
+@media (min-width: 768px) {
+  .docs-scroll {
+    scrollbar-gutter: stable;
+    padding-inline-end: calc(1.25rem - var(--scrollbar-size));
+  }
+
+  .docs-scroll::-webkit-scrollbar {
+    width: var(--scrollbar-size);
+  }
+
+  .docs-scroll::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: var(--color-fd-accent);
+  }
+
+  /* Firefox only: Chromium drops the ::-webkit styles once scrollbar-width/color are set */
+  @supports (-moz-appearance: none) {
+    .docs-scroll {
+      scrollbar-color: var(--color-fd-accent) transparent;
+      scrollbar-width: thin;
+    }
+  }
+}
+
 #nd-sidebar [data-search-full] {
   display: none;
 }
 
-/* Sidebar rows: the dashboard's 40px pills (nav-pill.ts), the current page tinted with
-   the accent. */
-#nd-sidebar a[data-active],
-#nd-sidebar button[aria-expanded]:not([aria-haspopup]) {
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active],
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-expanded]:not([aria-haspopup]) {
   min-height: 2.5rem;
   gap: 0.625rem;
   border-radius: 9999px;
   /* the start padding is Fumadocs' own, inline per depth, which keeps nested rows clear of
      the folder's rule */
   padding-inline-end: 0.5rem;
-  /* one line per row, as in the dashboard (LABEL_CLASSNAME) */
   white-space: nowrap;
   font-size: 13.5px;
   font-weight: 500;
 }
 
-/* The current page keeps its accent fill on hover, as in the dashboard. */
-#nd-sidebar a[data-active='false']:hover {
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='false']:hover {
   background-color: rgb(255 255 255 / 0.06);
   color: var(--color-fd-foreground);
 }
 
-#nd-sidebar a[data-active='true'] {
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true'] {
   background-color: var(--color-fd-accent);
   color: var(--color-fd-primary);
   font-weight: 600;
 }
 
-/* The row icons at the dashboard sidebar's size. */
-#nd-sidebar a[data-active] svg {
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active] svg {
   width: 17px;
   height: 17px;
 }
 
-/* Fumadocs' rule runs down each folder 10px in; the folder's rows start after it, so the
-   rule sits beside their pills rather than inside the hover and active fill. Their start
-   padding is the dashboard's pill inset (11.5px) instead of Fumadocs' inline depth indent,
-   and the tick Fumadocs draws on the rule for the current page goes. */
-#nd-sidebar [data-open] > div > a,
-#nd-sidebar [data-closed] > div > a {
+/* Rows start after the folder's rule, so it isn't inside their fill; Fumadocs' tick on the
+   rule goes. */
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-open] > div > a,
+:is(#nd-sidebar, #nd-sidebar-mobile) [data-closed] > div > a {
   margin-inline-start: 1rem;
   padding-inline-start: 0.71875rem !important;
 }
 
-#nd-sidebar a[data-active='true']::before {
+:is(#nd-sidebar, #nd-sidebar-mobile) a[data-active='true']::before {
   display: none;
 }
 
-/* Folder titles read as the dashboard's eyebrow labels over their rows. Search and the
-   language select also carry aria-expanded, but open a dialog. */
-#nd-sidebar button[aria-expanded]:not([aria-haspopup]) {
+/* search and the language select also carry aria-expanded, but open a dialog */
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-expanded]:not([aria-haspopup]) {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.025em;
   text-transform: uppercase;
 }
 
-#nd-sidebar button[aria-expanded]:not([aria-haspopup]):hover {
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-expanded]:not([aria-haspopup]):hover {
   background-color: transparent;
   color: var(--color-fd-foreground);
 }
 
-/* Search and the language select: the dashboard header's glass pills. */
-#nd-sidebar button[aria-haspopup='dialog'] {
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-haspopup='dialog'] {
   height: 2.25rem;
   border: 1px solid var(--color-fd-border);
   border-radius: 9999px;
@@ -509,13 +592,11 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   font-size: 13px;
 }
 
-#nd-sidebar button[aria-haspopup='dialog'] kbd {
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-haspopup='dialog'] kbd {
   display: none;
 }
 
-/* Icon buttons (collapse, search, menu): the dashboard's IconButton, a 36px circle that
-   lights up on hover. The floating panel shown while the sidebar is collapsed becomes a
-   glass pill around them, like the dashboard header's controls. */
+/* the floating panel shown while the sidebar is collapsed */
 [data-sidebar-panel] {
   gap: 0.125rem;
   padding: 0.25rem;
@@ -528,7 +609,7 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
 }
 
 [data-sidebar-panel] button,
-#nd-sidebar button[aria-label]:not([aria-haspopup]),
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-label]:not([aria-haspopup]),
 #nd-subnav button {
   width: 2.25rem;
   height: 2.25rem;
@@ -538,20 +619,19 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
 }
 
 [data-sidebar-panel] button:hover,
-#nd-sidebar button[aria-label]:not([aria-haspopup]):hover,
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-label]:not([aria-haspopup]):hover,
 #nd-subnav button:hover {
   background-color: rgb(255 255 255 / 0.06);
   color: var(--color-fd-foreground);
 }
 
 [data-sidebar-panel] button svg,
-#nd-sidebar button[aria-label]:not([aria-haspopup]) svg,
+:is(#nd-sidebar, #nd-sidebar-mobile) button[aria-label]:not([aria-haspopup]) svg,
 #nd-subnav button svg {
   width: 17px;
   height: 17px;
 }
 
-/* Table of contents: an eyebrow title over the dashboard's muted rows. */
 #toc-title {
   font-size: 11px;
   font-weight: 600;
@@ -559,17 +639,13 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   text-transform: uppercase;
 }
 
-/* Accordions: the dashboard's OAuth providers list (OAuthSettingsForm). One tile for the
-   group, each row a pill that washes white on hover, a rule under every row but the last
-   (drawn by the pill, so it curves with it),
-   the chevron at the end pointing down and turning up when open. */
 .docs-accordions {
+  @apply glass-panel;
   display: flex;
   flex-direction: column;
   overflow: visible;
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 1rem;
-  background-color: rgb(255 255 255 / 0.03);
+  border: 0;
+  border-radius: 1.5rem;
   padding: 0.375rem;
 }
 
@@ -577,15 +653,16 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   border: 0 !important;
 }
 
-/* On the row pill itself, as in the dashboard, so the rule bends with its rounded ends. */
+/* on the pill, so the rule bends with its rounded ends */
 .docs-accordions > :not(:last-child) > h3 > button:first-child {
   border-bottom: 1px solid color-mix(in srgb, var(--color-fd-border) 50%, transparent);
 }
 
 .docs-accordions h3 button {
+  min-height: 3.75rem;
   gap: 0.75rem;
   border-radius: 9999px;
-  padding: 0.625rem 0.78125rem;
+  padding: 0.75rem 0.875rem;
   font-size: 13px;
   font-weight: 500;
   transition: background-color 150ms;
@@ -605,21 +682,20 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   rotate: 270deg;
 }
 
-/* The card's own heading is the dashboard CardHeader's 14px title, not the article's
-   section heading; its copy-link button sits inside the line instead of growing it. */
+/* the copy-link button sits inside the line instead of growing it */
 #nd-page .prose .docs-card h2 {
   margin: 0;
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
   line-height: 1.25rem;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 #nd-page .prose .docs-card h2 > button {
   margin-block: -0.25rem;
 }
 
-/* Content starts 16px under the header's rule (CardHeader + pt-4) whatever it is, and the
-   last block lends no margin of its own, so the card's 16px padding is the gap below. */
+/* the last block has no margin: the card's padding is the gap below */
 #nd-page .prose .docs-card > :nth-child(3) {
   margin-top: 1rem;
 }
@@ -628,56 +704,49 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   margin-bottom: 0;
 }
 
-/* Inside a Section card the card is the tile: a table's rows sit straight on it under the
-   header, like the dashboard's list cards. */
 #nd-page .prose .docs-card div:has(> table) {
   border: 0;
   background: none;
+  box-shadow: none;
   padding: 0;
   margin: 0.5rem 0 0;
 }
 
-/* Inside a titled card (see Accordions in components/mdx.tsx) the card is the tile, as in
-   the dashboard's OAuth settings: the rows sit straight on it under the header. */
 .docs-card .docs-accordions {
   border: 0;
   background: none;
+  box-shadow: none;
   padding: 0;
   margin-top: 0.5rem;
 }
 
-/* the panel's text lines up with the row's padding */
 .docs-accordions [role='region'] > div {
-  padding: 0.25rem 0.78125rem 0.5rem;
+  padding: 0.25rem 0.875rem 0.875rem;
 }
 
-/* Tabs: a dashboard tile with PillTabs on top. */
 .docs-tabs {
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 1rem;
-  background-color: rgb(255 255 255 / 0.03);
-  padding: 0.375rem;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  padding: 0;
 }
 
 .docs-tabs [role='tablist'] {
+  @apply glass-panel;
   align-self: flex-start;
+  max-width: 100%;
   gap: 0.25rem;
   margin: 0;
-  border: 1px solid #e8ecfb17;
-  border-radius: 9999px;
-  background-color: rgb(255 255 255 / 0.03);
-  padding: 0.1875rem;
-  backdrop-filter: blur(12px);
-}
-
-/* The dashboard settings' TabBar: a glass capsule, plain tabs washed white on hover, the
-   active one an accent pill. 28px pills in a 3px-padded bar with its 1px border: 36px, the
-   height of the search pill in the header. */
-.docs-tabs [role='tab'] {
-  height: 1.75rem;
   border: 0;
   border-radius: 9999px;
-  padding: 0 0.875rem;
+  padding: 0.375rem;
+}
+
+.docs-tabs [role='tab'] {
+  height: 2.25rem;
+  border: 0;
+  border-radius: 9999px;
+  padding: 0 1rem;
   color: var(--color-fd-foreground);
   font-size: 13px;
   font-weight: 500;
@@ -688,16 +757,14 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   background-color: rgb(255 255 255 / 0.06);
 }
 
-/* The install-method switch keeps to one line: on a narrow card its pills scale down
-   together instead of running past the edge. --label-chars (set by MethodSwitch) is the
-   length of both labels; at about 0.58em a character plus the pills' padding, this is the
-   largest size that fits, capped at the usual 13px. */
+/* Pills scale down together to stay on one line. --label-chars (MethodSwitch) is both labels'
+   length: ~0.58em a character plus padding, capped at 13px. */
 .docs-method-switch {
   container-type: inline-size;
 }
 
 .docs-method-switch [role='tab'] {
-  padding: 0 1.077em;
+  padding: 0 1.231em;
   font-size: min(13px, calc((100cqi - 12px) / (var(--label-chars) * 0.58 + 4.31)));
 }
 
@@ -707,18 +774,31 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
 }
 
 .docs-tabs [role='tabpanel'] {
-  background: none;
+  @apply glass-panel;
+  margin-top: 0.75rem;
+  border-radius: 1.5rem;
+  padding: 1rem;
 }
 
-/* Inside a Section card the card is the tile, as with the accordions above. */
-.docs-card .docs-tabs {
-  border: 0;
+.docs-card .docs-tabs [role='tablist'] {
+  border: 1px solid var(--color-fd-border);
+  background: rgb(255 255 255 / 0.03);
+  box-shadow: none;
+  padding: 0.25rem;
+}
+
+.docs-card .docs-tabs [role='tab'] {
+  height: 1.625rem;
+  padding: 0 0.875rem;
+}
+
+.docs-card .docs-tabs [role='tabpanel'] {
   background: none;
+  box-shadow: none;
+  border-radius: 0;
   padding: 0;
 }
 
-/* Inline code: the dashboard's monospaced values, a white wash instead of Fumadocs' dark
-   well with a border. */
 #nd-page .prose :not(pre) > code,
 #fd-search-dialog-content code {
   border: 0;
@@ -726,18 +806,15 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   background-color: rgb(255 255 255 / 0.06);
   padding: 0.125rem 0.375rem;
   color: var(--color-fd-foreground);
-  /* relative, so it keeps its step below the text it sits in (16px prose, 15px in tabs,
-     14px in callouts); monospace reads larger than the same size in the text face */
+  /* em, so it steps below the text around it; monospace reads larger at the same size */
   font-size: 0.875em;
 }
 
-/* Tables: the dashboard's row lists (LIST_HEAD_CLASS / LIST_BODY_CLASS) on a tile, eyebrow
-   headings over a rule, rows parted by a faint line. */
 #nd-page .prose div:has(> table) {
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 1rem;
-  background-color: rgb(255 255 255 / 0.03);
-  padding: 0.375rem;
+  @apply glass-panel;
+  border: 0;
+  border-radius: 1.5rem;
+  padding: 1rem;
 }
 
 #nd-page .prose table {
@@ -754,7 +831,7 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   border: 0;
   border-bottom: 1px solid var(--color-fd-border);
   background: none;
-  padding: 0.625rem 0.75rem;
+  padding: 0 0.875rem 0.625rem;
   color: var(--color-fd-muted-foreground);
   font-size: 11px;
   font-weight: 600;
@@ -764,40 +841,37 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   white-space: nowrap;
 }
 
-/* A gap under the heading rule (LIST_HEAD_CLASS' mb-1); rows can't take a margin, so
-   it's an empty row of its own. */
+/* rows can't take a margin, so the gap under the heading is an empty row */
 #nd-page .prose tbody::before {
   content: '';
   display: table-row;
-  height: 0.375rem;
+  height: 0.25rem;
 }
 
+/* a cell's height is its minimum, so long text still wraps */
 #nd-page .prose td {
+  height: 3.75rem;
   border: 0;
-  padding: 0.75rem;
+  padding: 0.75rem 0.875rem;
   vertical-align: middle;
 }
 
-/* a value in a cell (a variable, a container:port) stays whole rather than breaking at a hyphen */
+/* values stay whole rather than breaking at a hyphen */
 #nd-page .prose td code {
   white-space: nowrap;
 }
 
 #nd-page .prose tbody tr:not(:last-child) td {
-  box-shadow: inset 0 -1px 0 rgb(232 236 251 / 0.045);
+  box-shadow: inset 0 -1px 0 color-mix(in srgb, var(--color-fd-border) 50%, transparent);
 }
 
-/* On a phone the description in a wide table (the .env lists) keeps a readable width:
-   squeezed beside three other columns it wrapped every few words and drew rows a screen
-   tall. The table scrolls sideways instead. Narrower tables fit as they are. */
+/* phone: the description keeps a readable width and the table scrolls sideways */
 @media (width < 40rem) {
   #nd-page .prose tr:has(> :nth-child(4)) > td:last-child {
     min-width: 20rem;
   }
 }
 
-/* "Copy link" next to a heading or an accordion title: the dashboard's IconButton, a 28px
-   circle with a 14px glyph, washed white on hover instead of the accent tint. */
 [class*='group/heading'] > button,
 .docs-accordions h3 > button:not(:first-child) {
   width: 1.75rem;
@@ -823,18 +897,17 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   height: 0.875rem;
 }
 
-/* Previous / next page: the same tiles as the link cards. */
 .docs-pager > a {
+  @apply glass-panel;
   gap: 0.375rem;
-  border: 1px solid rgb(255 255 255 / 0.08);
-  border-radius: 1rem;
-  background-color: rgb(255 255 255 / 0.03);
-  padding: 1.25rem;
+  border: 0;
+  border-radius: 1.5rem;
+  padding: 1rem;
+  transition: background-color 150ms;
 }
 
 .docs-pager > a:hover {
-  border-color: rgb(255 255 255 / 0.16);
-  background-color: rgb(255 255 255 / 0.05);
+  background-color: rgb(255 255 255 / 0.06);
   color: var(--color-fd-foreground);
 }
 
@@ -848,29 +921,28 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   font-size: 13px;
 }
 
-/* Article type a step closer to the dashboard's density: 15px on a 1.7 line instead of
-   16/28 (headings and inline code are in em, so they scale with it). Bold is 600, the
-   dashboard's titles' weight; Fumadocs' 500 barely shows once body and bold share a colour. */
+/* headings and inline code are in em, so they scale with the body size */
 #nd-page .prose {
   font-size: 15px;
   line-height: 1.7;
+}
+
+/* the body's gap is the space before the pager */
+#nd-page .prose > :last-child {
+  margin-bottom: 0;
 }
 
 #nd-page .prose :is(strong, b) {
   font-weight: 600;
 }
 
-/* Section headings match the page title in the card's header (21px bold, tight). */
 #nd-page .prose h2 {
   font-size: 21px;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
 
-/* Body copy sits a step below the headings so a page of prose reads calmer; bold keeps the
-   full foreground, which is what makes it register. Links in running text are the
-   dashboard's primary-coloured links (text-primary hover:underline); headings, which
-   Fumadocs also renders as links to themselves, keep their own colour. */
+/* headings are links to themselves too, so they keep their own colour */
 #nd-page .prose :is(p, li, td, blockquote) {
   color: #b3bbd8;
 }
@@ -891,24 +963,21 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   text-underline-offset: 3px;
 }
 
-/* The dashboard's main panel: frosted glass over the shader. */
 .glass {
   border: 1px solid var(--color-fd-border);
-  border-radius: 1.5rem;
+  border-radius: 2rem;
   background-color: rgb(57 60 71 / 0.5);
   box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
   backdrop-filter: blur(28px) saturate(1.5);
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
 }
 
-/* The dashboard's Card / KpiTile, for content inside a .glass panel. */
 .tile {
   border: 1px solid rgb(255 255 255 / 0.08);
   border-radius: 1rem;
   background-color: rgb(255 255 255 / 0.03);
 }
 
-/* Same entrance as the dashboard's list rows: a short rise, no overshoot. */
 [data-reveal-ready='true'] [data-reveal] {
   opacity: 0;
   translate: 0 12px;
@@ -922,57 +991,60 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   translate: none;
 }
 
-/* A one-line block with no title (a single command) is the dashboard's CopyableValue: a 38px
-   pill on the input's dark wash, the text 12px in, the copy button centred 4px from the
-   end. Titled and multi-line blocks keep the tile, which has no pill to become. */
 figure.shiki:not(:has(figcaption)):has(pre .line:only-child) {
   border-radius: 9999px;
-  border-color: var(--color-fd-border);
 }
 
-/* The text stops short of the button here, so its wrapper needs no backing; the button
-   is IconButton tone="group": bare at rest, washed when any part of the field is hovered. */
 figure.shiki:not(:has(figcaption)):has(pre .line:only-child) > div:has(> button) {
   top: 50%;
   right: 0.25rem;
   translate: 0 -50%;
-  background: none;
 }
 
-figure.shiki:not(:has(figcaption)):has(pre .line:only-child):hover button {
+figure.shiki:not(:has(figcaption)):hover button {
   background-color: rgb(255 255 255 / 0.06);
   color: var(--color-fd-foreground);
 }
 
+/* A fixed height keeps the field 36px whether or not a long command adds the 4px scrollbar. */
 figure.shiki:not(:has(figcaption)):has(pre .line:only-child) [role='region'] {
-  padding-block: 0.5625rem;
-  padding-inline: 0.75rem 2.5rem;
+  height: 2.125rem;
+  /* one line never scrolls down; Firefox's thin bar is wider than the 4px the padding leaves it */
+  overflow-y: hidden;
+  margin-inline-end: 2.25rem;
+  padding: 0.4375rem 0 0.1875rem 0.875rem;
+  font-size: 12px;
+  line-height: 1.25rem;
 }
 
 figure.shiki:not(:has(figcaption)):has(pre .line:only-child) .line {
   padding-inline: 0;
 }
 
-/* Code block copy button, redrawn as the dashboard's IconButton + CopyableValue: a 28px
-   circle, lucide's Copy glyph, a green Check once copied. Fumadocs draws a Clipboard icon
-   and takes no props for it, so the glyph is swapped for a mask. */
-/* Every code block sits on the dashboard's input wash (bg-input/60), like its fields,
-   rather than Fumadocs' opaque card colour. */
-figure.shiki {
-  background-color: rgb(18 18 18 / 0.5);
+/* An untitled multi-line block has its copy button in the top corner: the scroller ends
+   before it too, so a long first line doesn't run under the button. */
+figure.shiki:not(:has(figcaption)):not(:has(pre .line:only-child)) .fd-scroll-container {
+  margin-inline-end: 2.5rem;
 }
 
+figure.shiki {
+  @apply glass-well;
+  border-color: transparent;
+  border-radius: 1.125rem;
+}
+
+figure.shiki > figcaption {
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+/* Fumadocs' blur under the button read as a hover pill */
 figure.shiki div:has(> button) {
   border-radius: 9999px;
-  /* Fumadocs blurs what's under the button; a long line then reads as a hover pill. A
-     denser wash of the block's own tone hides the text under it instead. */
-  background-color: rgb(18 18 18 / 0.85);
+  background: none;
   backdrop-filter: none;
 }
 
-/* A code block's own scrollbar: a 4px rail in the page's colours. The card body's
-   scrollbar-color is inherited, and once set Chrome ignores ::-webkit-scrollbar for a wider
-   standard bar, so it's reset. */
+/* once scrollbar-color is set Chrome ignores ::-webkit-scrollbar, so the inherited one is reset */
 figure.shiki .fd-scroll-container {
   scrollbar-color: auto;
 }
@@ -982,24 +1054,17 @@ figure.shiki .fd-scroll-container::-webkit-scrollbar {
   height: 4px;
 }
 
-/* the page's scrollbar colour, the dashboard's accent */
 figure.shiki .fd-scroll-container::-webkit-scrollbar-thumb {
   border-radius: 9999px;
   background: var(--color-fd-accent);
 }
 
-/* Firefox has no ::-webkit-scrollbar: the standard properties give it the same colour on
-   its thinnest bar. */
+/* Firefox has no ::-webkit-scrollbar */
 @supports not selector(::-webkit-scrollbar) {
   figure.shiki .fd-scroll-container {
     scrollbar-color: var(--color-fd-accent) transparent;
     scrollbar-width: thin;
   }
-}
-
-/* In a titled block the button sits in the header, over nothing, so it needs no backing. */
-figure.shiki:has(figcaption) div:has(> button) {
-  background: none;
 }
 
 figure.shiki button {
@@ -1024,6 +1089,7 @@ figure.shiki button svg {
   display: none;
 }
 
+/* Fumadocs draws a Clipboard icon and takes no props for it, so the glyph is a mask */
 figure.shiki button::before {
   content: '';
   width: 0.875rem;
@@ -1041,20 +1107,13 @@ figure.shiki button[data-checked]::before {
   mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
 }
 
-/* Language popover, redrawn as the dashboard's POPOVER_CLASS + LanguagePicker: a glass
-   shell, 36px pill rows, the current language marked with a check rather than a tint. */
 div[role='dialog'][data-side]:has(> p:first-child + button) {
   min-width: 11rem;
   gap: 0;
   padding: 0.375rem;
-  border: 1px solid rgb(255 255 255 / 0.14);
+  @apply glass-dialog;
+  border: 0;
   border-radius: 1.5rem;
-  background-color: rgb(57 60 71 / 0.6);
-  box-shadow:
-    0 24px 48px -20px rgb(4 8 20 / 0.6),
-    inset 0 1px 0 rgb(232 236 251 / 0.16);
-  backdrop-filter: blur(40px) saturate(1.5);
-  -webkit-backdrop-filter: blur(40px) saturate(1.5);
 }
 
 div[role='dialog'][data-side]:has(> p:first-child + button) > p {
@@ -1089,19 +1148,12 @@ div[role='dialog'][data-side]:has(> p:first-child + button) > button[class*='bg-
     center / contain no-repeat;
 }
 
-/* Fumadocs' other popovers (the page's "Open" menu): the same glass shell as the language
-   one above, rows lit with the dashboard's white wash instead of the accent tint. */
 div[role='dialog'][data-side]:has(> a) {
   gap: 0.125rem;
   padding: 0.375rem;
-  border: 1px solid rgb(255 255 255 / 0.14);
+  @apply glass-dialog;
+  border: 0;
   border-radius: 1.5rem;
-  background-color: rgb(57 60 71 / 0.6);
-  box-shadow:
-    0 24px 48px -20px rgb(4 8 20 / 0.6),
-    inset 0 1px 0 rgb(232 236 251 / 0.16);
-  backdrop-filter: blur(40px) saturate(1.5);
-  -webkit-backdrop-filter: blur(40px) saturate(1.5);
 }
 
 div[role='dialog'][data-side]:has(> a) > a {
@@ -1116,17 +1168,10 @@ div[role='dialog'][data-side]:has(> a) > a:hover {
   background-color: rgb(255 255 255 / 0.07);
 }
 
-/* Search dialog: the popovers' glass shell, a faint rule between the field and the
-   results, the ESC key as a small pill and the results as rows lit with the white wash. */
 #fd-search-dialog-content {
-  border: 1px solid rgb(255 255 255 / 0.14);
+  @apply glass-dialog;
+  border: 0;
   border-radius: 1.5rem;
-  background-color: rgb(57 60 71 / 0.6);
-  box-shadow:
-    0 24px 48px -20px rgb(4 8 20 / 0.6),
-    inset 0 1px 0 rgb(232 236 251 / 0.16);
-  backdrop-filter: blur(40px) saturate(1.5);
-  -webkit-backdrop-filter: blur(40px) saturate(1.5);
 }
 
 #fd-search-dialog-content > * {
@@ -1168,13 +1213,11 @@ div[role='dialog'][data-side]:has(> a) > a:hover {
   text-decoration: none;
 }
 
-/* the results' scrollbar: the code blocks' thin accent rail */
 #fd-search-dialog-content .overflow-y-auto {
   scrollbar-color: var(--color-fd-accent) transparent;
   scrollbar-width: thin;
 }
 
-/* A dashboard preview screen swapping in: the dashboard's own page fade, plus a short rise. */
 @keyframes preview-screen-in {
   from {
     opacity: 0;
@@ -1186,7 +1229,6 @@ div[role='dialog'][data-side]:has(> a) > a:hover {
   animation: preview-screen-in 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Scrolls without showing a scrollbar, for compact strips like a pill tab bar. */
 .no-scrollbar {
   scrollbar-width: none;
 }

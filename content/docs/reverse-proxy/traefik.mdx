@@ -9,7 +9,7 @@ In this guide we will use Traefik as a reverse proxy to reach Remnashop. We will
 You need a registered domain name to continue.
 </Callout>
 
-<Section title="Installation method" description="Where Remnashop runs relative to the panel" icon="Split">
+<Section title="Installation method" description="Where Remnashop runs relative to the Remnawave panel" icon="Split">
 
 <MethodSwitch same="Same server" separate="Separate servers" />
 
@@ -78,7 +78,7 @@ mkdir -p /opt/remnashop/traefik && cd /opt/remnashop/traefik && nano docker-comp
 ```yaml title="docker-compose.yml"
 services:
     traefik:
-        image: traefik:latest
+        image: traefik:v3
         container_name: traefik
         restart: unless-stopped
         security_opt:
@@ -91,7 +91,6 @@ services:
         environment:
             - TZ=UTC
         volumes:
-            - /var/run/docker.sock:/var/run/docker.sock:ro
             - ./traefik.yml:/traefik.yml:ro
             - ./letsencrypt:/letsencrypt
             - ./config:/config:ro
@@ -114,7 +113,6 @@ Replace `REPLACE_WITH_YOUR_EMAIL` with your email address.
 ```yaml title="traefik.yml"
 api:
   dashboard: true
-  debug: true
 entryPoints:
   http:
     address: ":80"
@@ -125,8 +123,6 @@ entryPoints:
           scheme: https
   https:
     address: ":443"
-serversTransport:
-  insecureSkipVerify: true
 providers:
   file:
     directory: /config
@@ -182,7 +178,7 @@ http:
         certResolver: letsencrypt
       service: remnashop-telegram
     remnashop:
-      rule: "Host(`SHOP_DOMAIN`)"
+      rule: "Host(`SHOP_DOMAIN`) && !Path(`/metrics`)"
       entrypoints:
         - https
       tls:

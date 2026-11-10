@@ -21,10 +21,6 @@ icon: ListChecks
 * **CPU**: 2 cores minimum, 4 recommended
 * **SSD**: 20 GB or more
 
-<Callout type="idea">
-Remnashop will run on a smaller server, but we don't recommend it: some background tasks are resource-intensive.
-</Callout>
-
 <Callout type="warn">
 If Remnashop runs on the same server as the Remnawave panel, the requirements add up: add the [panel's requirements](https://docs.rw/install/requirements/) to these. The minimum for both is 4 GB RAM, 4 CPU cores and 40 GB SSD.
 </Callout>
@@ -39,7 +35,7 @@ If Remnashop runs on the same server as the Remnawave panel, the requirements ad
 * **SSD**: 5 GB or more
 
 <Callout type="idea">
-The web cabinet is static files behind nginx, so it can run on the same server as Remnashop.
+The web cabinet is a lightweight nginx container with static files and an API proxy, so it can run on the same server as Remnashop.
 </Callout>
 
 </Section>

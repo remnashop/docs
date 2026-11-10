@@ -7,7 +7,7 @@ icon: RefreshCw
 Before updating, check the [changelog](/docs/overview/whats-new) for changes that may need action on your side.
 </Callout>
 
-<Section title="Remnashop" description="Bot, dashboard and worker" icon="Package">
+<Section title="Remnashop" description="Bot, dashboard and background tasks" icon="Package">
 
 ```bash title="Update and restart"
 cd /opt/remnashop && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
@@ -19,10 +19,120 @@ docker image prune
 
 </Section>
 
-<Section title="Web cabinet" description="The user cabinet in the browser" icon="Globe">
+<Section title="Web cabinet" description="The customer cabinet in the browser" icon="Globe">
 
 ```bash title="Update and restart"
 cd /opt/remnashop/cabinet && docker compose pull && docker compose down && docker compose up -d && docker compose logs -f
 ```
+
+</Section>
+
+<Section title="Moving from 0.x to 1.0" description="New architecture, old database carried over" icon="TriangleAlert">
+
+The architecture changed completely in 1.0, so the update command above doesn't apply. These steps work for any 0.x version from 0.1.0 on. The old database is migrated automatically on the first 1.0 start: Remnashop first writes a signed backup to `backups/`, then keeps the old tables in a separate `legacy` schema, so the migration can be rolled back until you delete them.
+
+<Callout type="error" title="Stop the old version completely">
+In 1.0 the `worker` and `scheduler` containers have new names (`remnashop-worker` instead of `remnashop-taskiq-worker`). If you only swap the files and run `docker compose up -d`, the old containers keep running old code against the migrated database. Stop the old version with the **old** `docker-compose.yml` and start 1.0 with `--remove-orphans`.
+</Callout>
+
+**Step 1. Keep the old files and stop the old version**
+
+```bash title="Copy the files and stop"
+cd /opt/remnashop && cp -p .env .env.old && cp docker-compose.yml docker-compose.old.yml && docker compose down
+```
+
+**Step 2. Download the new docker-compose.yml**
+
+Pick the same variant you ran the old version with.
+
+```bash title="Same server as the panel"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.internal.yml
+```
+
+```bash title="Separate server"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/docker-compose.prod.external.yml
+```
+
+**Step 3. Build the new .env**
+
+```bash title="New .env and JWT secret"
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop/refs/heads/main/.env.example && chmod 600 .env .env.old && sed -i "s|^APP_JWT_SECRET=change_me$|APP_JWT_SECRET=$(openssl rand -base64 48 | tr -d '\n')|" .env && nano .env
+```
+
+Copy these values from `.env.old` unchanged:
+
+* `APP_DOMAIN`;
+* `APP_CRYPT_KEY` — **the old one, exactly**. With any other key the migration stops before it starts: the secrets in the database are encrypted with it;
+* `DATABASE_PASSWORD`, plus `DATABASE_USER` and `DATABASE_NAME` if you changed them — the database already exists with these credentials, a new password won't open it;
+* `REMNAWAVE_HOST`, `REMNAWAVE_TOKEN`, `REMNAWAVE_WEBHOOK_SECRET` and, if set, `REMNAWAVE_CADDY_TOKEN`, `REMNAWAVE_COOKIE`, `REMNAWAVE_CF_CLIENT_ID`, `REMNAWAVE_CF_CLIENT_SECRET`;
+* `REDIS_PASSWORD`, if set; if it wasn't, generate a new one with the command after this list;
+* `BOT_OWNER_ID` — append it to the end of the file. The migration uses it only to find the owner; without it, the user with the owner role in the old version becomes the owner. Before 0.7 this variable was called `BOT_DEV_ID` — copy its value into `BOT_OWNER_ID`.
+
+```bash title="Redis password, if the old version had none"
+sed -i "s|^# REDIS_PASSWORD=.*|REDIS_PASSWORD=$(openssl rand -hex 24 | tr -d '\n')|" .env
+```
+
+Don't copy `BOT_TOKEN`, `BOT_SECRET_TOKEN` or the other removed variables (listed below) — they are no longer read.
+
+**Step 4. Add the bot route to the reverse proxy**
+
+In the old version every request went to `remnashop:5000`. In 1.0 the Telegram webhook `/api/v1/telegram` is served by a separate `remnashop-telegram:5001` container — add a route for it and leave the rest as it was. Ready-made configs: [Caddy](/docs/reverse-proxy/caddy), [Nginx](/docs/reverse-proxy/nginx), [Traefik](/docs/reverse-proxy/traefik).
+
+<Callout type="idea">
+Payment gateway and Remnawave panel webhooks keep their addresses — nothing to change in their settings.
+</Callout>
+
+**Step 5. Start 1.0**
+
+```bash title="Start and migrate the database"
+docker compose pull && docker compose up -d --remove-orphans && docker compose logs -f remnashop
+```
+
+The `remnashop` logs show the migration report: what was carried over, what was skipped and why, and the backup path. The bot, `worker` and `scheduler` containers start once the migration is done.
+
+<Callout type="warn">
+On a large database the migration may take over 10 minutes. If `docker compose up` reports `remnashop` as unhealthy, wait for the report in the logs and run `docker compose up -d --remove-orphans` again.
+</Callout>
+
+**Step 6. Sign in to the dashboard**
+
+Open `https://shop.domain.com` (the domain from `APP_DOMAIN`) in a browser and set the owner's login and password — they are attached to the migrated owner account with all its data. Then in Settings → Telegram bot paste the bot token, generate the webhook secret and restart the bot with the dashboard button. You can remove `BOT_OWNER_ID` from `.env` afterwards.
+
+**Step 7. Delete the old-version data**
+
+Once everything works, delete the `legacy` schema with “Delete old-version data” in the [CLI](/docs/getting-started/rescue-cli):
+
+```bash title="CLI"
+docker compose run --rm remnashop cli
+```
+
+<Accordions>
+<Accordion title="The migration stopped with an error">
+The cause is in the `remnashop` logs. If the error came after the backup, `backups/` gets a `legacy-migration-failed.txt` file — while it exists, `remnashop` doesn't retry the migration. Fix the cause, then run “Migrate data from the old version” in the CLI, or delete the file and run `docker compose up -d`.
+</Accordion>
+<Accordion title="Go back to the old version">
+Stop 1.0 (`docker compose down`), choose “Roll back the migration” in the CLI, then restore the old files and start the old version:
+
+```bash title="Back to the old version"
+mv .env.old .env && mv docker-compose.old.yml docker-compose.yml && docker compose up -d --remove-orphans
+```
+
+The rollback brings the old-version data back as it was before the migration: everything changed in 1.0 is lost. If you weren't on the latest 0.8 build, the CLI tells you to restore the pre-migration backup with “Restore backup” instead — follow its hint. After “Delete old-version data” the only way back is a backup.
+</Accordion>
+</Accordions>
+
+**What changed:**
+
+* Shop management moved from the bot to the dashboard at the `APP_DOMAIN` address. The bot is optional now, and the single process became several: `api`, `telegram`, `worker` and `scheduler`.
+* The owner signs in to the dashboard with a login and password; `BOT_OWNER_ID` is only needed for the migration.
+* The bot token, webhook secret and proxy are entered in the dashboard's bot settings and stored encrypted in the database.
+* Languages, bot commands, banners and texts are configured in the dashboard. Banners and `custom.ftl` from the old version's `assets` folder are not carried over.
+* API docs open from the dashboard, the separate Swagger switch is gone.
+
+**`.env` variables:**
+
+Removed: `BOT_TOKEN`, `BOT_DEV_ID`, `BOT_SECRET_TOKEN`, `BOT_PROXY_URL`, `BOT_SUPPORT_USERNAME`, `BOT_MINI_APP`, `BOT_SETUP_COMMANDS`, `BOT_USE_BANNERS`, `BOT_RESET_WEBHOOK`, `BOT_DROP_PENDING_UPDATES`, `APP_LOCALES`, `APP_DEFAULT_LOCALE`, `APP_SWAGGER_ENABLED`.
+
+Added: `APP_JWT_SECRET` (required), `APP_SECURE_COOKIES`, `APP_METRICS_ENABLED`, `APP_WORKERS`, `CABINET_DOMAIN`, `CABINET_PROXY_SECRET`, `WORKER_PROCESSES`, `WORKER_MAX_ASYNC_TASKS`, `DATABASE_MAX_CONNECTIONS`, database timeouts, `BOT_API_URL`, `REMNAWAVE_USERNAME_PREFIX`, `COMPOSE_PROFILES`, `ADMIN_API_PORT` — see [environment variables](/docs/getting-started/environment).
 
 </Section>

@@ -9,7 +9,7 @@ function DocsLink({ lang, text }: { lang: string; text: string }) {
   return (
     <Link
       href={getInstallHref(lang)}
-      className="bg-fd-accent text-fd-primary hover:bg-fd-primary/20 inline-flex h-10 items-center gap-1.5 rounded-full px-5 text-sm font-medium transition-colors"
+      className="border-fd-primary/35 bg-fd-primary/15 text-fd-primary hover:bg-fd-primary/20 inline-flex border h-10 items-center gap-1.5 rounded-full px-5 text-sm font-medium transition-colors"
     >
       {text}
       <ArrowRight className="size-4" />
@@ -31,21 +31,21 @@ function Timeline({ lang, quickStart }: { lang: string; quickStart: QuickStartCo
   return (
     <div className="mx-auto flex max-w-4xl flex-col items-center gap-10">
       <Heading quickStart={quickStart} />
-      <ol className="flex w-full flex-col gap-4">
+      <ol className="flex w-full flex-col gap-5">
         {quickStart.steps.map((step, index) => (
           <li key={step.title} className="relative flex gap-4">
-            {/* -bottom-4 bridges the list's gap-4 to the next number */}
+            {/* -bottom-5 bridges the list's gap-5 to the next number */}
             <span
               className={`absolute top-9 left-[17px] w-px ${
                 index === quickStart.steps.length - 1
                   ? 'from-fd-primary/25 bottom-0 bg-linear-to-b to-transparent'
-                  : 'bg-fd-primary/25 -bottom-4'
+                  : 'bg-fd-primary/25 -bottom-5'
               }`}
             />
-            <span className="glass text-fd-primary flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold">
+            <span className="glass-panel text-fd-primary flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold backdrop-blur-[28px] backdrop-saturate-150">
               {index + 1}
             </span>
-            <div className="glass flex min-w-0 flex-1 flex-col gap-2 p-4 sm:p-5">
+            <div className="glass-panel flex min-w-0 flex-1 flex-col gap-2 rounded-3xl p-4 backdrop-blur-[28px] backdrop-saturate-150">
               <h3 className="text-[15px] font-semibold tracking-tight">{step.title}</h3>
               {step.code ? <DynamicCodeBlock lang="bash" code={step.code} /> : null}
               {step.hint ? <p className="text-fd-muted-foreground text-sm">{step.hint}</p> : null}

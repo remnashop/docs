@@ -8,7 +8,6 @@ export type Feature = {
 
 export type Landing = {
   hero: { note: string; title: string; subtitle: string; primaryCta: string; githubCta: string; telegramCta: string };
-  featuresTitle: string;
   featuresHeading: string;
   featuresMore: string;
   features: Feature[];
@@ -30,7 +29,6 @@ const ru: Landing = {
     githubCta: 'GitHub',
     telegramCta: 'Telegram',
   },
-  featuresTitle: 'Возможности',
   featuresHeading: 'Всё, что нужно для продажи подписок',
   featuresMore: 'Все возможности',
   features: [
@@ -131,7 +129,6 @@ const en: Landing = {
     githubCta: 'GitHub',
     telegramCta: 'Telegram',
   },
-  featuresTitle: 'Features',
   featuresHeading: 'Everything you need to sell subscriptions',
   featuresMore: 'All features',
   features: [

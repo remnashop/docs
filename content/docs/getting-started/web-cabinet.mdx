@@ -3,6 +3,249 @@ title: Web cabinet
 icon: Globe
 ---
 
-<Callout type="idea">
-This page is in progress: installation and setup instructions for the web cabinet will appear here.
+<Section title="Web cabinet" description="How it works and prerequisites" icon="Globe">
+
+The web cabinet is the customer's cabinet in the browser and as a Telegram Mini App: sign-in, buying and renewing a subscription, connecting, payments and referrals. The cabinet runs in its own container and reaches the Remnashop API through its own proxy, so the customer's browser only ever sees the cabinet's domain.
+
+<Callout type="warn">
+Install and start Remnashop first, following the [installation guide](/docs/getting-started/installation). The cabinet needs its own domain, for example `cabinet.domain.com`.
 </Callout>
+
+</Section>
+
+<Section title="Installation method" description="Where the cabinet runs relative to Remnashop" icon="Split">
+
+<MethodSwitch same="Same server" separate="Separate servers" />
+
+<Method only="same">
+
+Use this method if the cabinet runs on the same server as Remnashop. The cabinet reaches the API over the internal Docker network.
+
+</Method>
+
+<Method only="separate">
+
+Use this method if the cabinet runs on another server. The cabinet reaches the API through the Remnashop domain over HTTPS.
+
+</Method>
+
+</Section>
+
+<Section title="Step 1: Create the directory" description="A directory for the cabinet files" icon="FolderPlus">
+
+```bash title="Create the directory"
+mkdir -p /opt/remnashop/cabinet && cd /opt/remnashop/cabinet
+```
+
+</Section>
+
+<Section title="Step 2: Shared secret" description="Key between the cabinet and Remnashop" icon="KeyRound">
+
+The cabinet passes the customer's IP address to Remnashop and vouches for it with a secret. Remnashop trusts that address only when the secret matches its own.
+
+```bash title="Generate the secret"
+echo "CABINET_PROXY_SECRET=$(openssl rand -hex 32)" > .env && cat .env
+```
+
+Copy the printed value, you will need it in step 4.
+
+<Callout type="idea">
+The secret may contain only Latin letters, digits, `_` and `-`. Use at least 32 characters — `openssl rand -hex 32` gives a suitable value.
+</Callout>
+
+</Section>
+
+<Section title="Step 3: docker-compose.yml" description="The cabinet container" icon="FileCode">
+
+```bash title="Create docker-compose.yml"
+nano docker-compose.yml
+```
+
+<Method only="same">
+
+```yaml title="docker-compose.yml"
+services:
+  remnashop-cabinet:
+    image: ghcr.io/remnashop/remnashop-cabinet:latest
+    container_name: remnashop-cabinet
+    restart: unless-stopped
+    environment:
+      API_URL: http://remnashop:5000
+      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
+    ports:
+      - 127.0.0.1:5010:80
+    networks:
+      - remnawave-network
+
+networks:
+  remnawave-network:
+    name: remnawave-network
+    external: true
+```
+
+<Callout type="idea">
+`API_URL: http://remnashop:5000` is the Remnashop container name on the `remnawave-network` Docker network. Start Remnashop before the cabinet, otherwise the network doesn't exist yet and the container won't start.
+</Callout>
+
+</Method>
+
+<Method only="separate">
+
+```yaml title="docker-compose.yml"
+services:
+  remnashop-cabinet:
+    image: ghcr.io/remnashop/remnashop-cabinet:latest
+    container_name: remnashop-cabinet
+    restart: unless-stopped
+    environment:
+      API_URL: https://SHOP_DOMAIN
+      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
+    ports:
+      - 127.0.0.1:5010:80
+    networks:
+      - remnawave-network
+
+networks:
+  remnawave-network:
+    name: remnawave-network
+    external: false
+```
+
+<Callout type="warn">
+Replace `SHOP_DOMAIN` with the Remnashop domain, the value of `APP_DOMAIN`. Use `https://` and no trailing slash: the cabinet accepts plain `http://` only for a container name on the Docker network.
+</Callout>
+
+</Method>
+
+<Callout type="error">
+Publish the port on `127.0.0.1` only, as in the example. The cabinet trusts the `X-Forwarded-For` header from the reverse proxy; exposed directly to the internet, it would let a client claim any IP.
+</Callout>
+
+</Section>
+
+<Section title="Step 4: Configure Remnashop" description="Cabinet domain and shared secret" icon="FileCog">
+
+<Method only="separate">
+
+Run this step on the Remnashop server.
+
+</Method>
+
+Open the Remnashop `.env` file:
+
+```bash title="Edit the Remnashop .env file"
+cd /opt/remnashop && nano .env
+```
+
+```bash title="Remnashop .env contents"
+# Web cabinet domain WITHOUT HTTP/HTTPS and WITHOUT a trailing slash.
+CABINET_DOMAIN=cabinet.domain.com
+
+# The same value as CABINET_PROXY_SECRET in the cabinet's .env (step 2).
+CABINET_PROXY_SECRET=change_me
+```
+
+Restart Remnashop to apply the changes:
+
+```bash title="Restart Remnashop"
+cd /opt/remnashop && docker compose up -d
+```
+
+<Callout type="warn">
+`CABINET_PROXY_SECRET` must be the same in the cabinet's `.env` and in the Remnashop `.env`. If the secret leaks, generate a new one and replace it in both files.
+</Callout>
+
+</Section>
+
+<Section title="Step 5: Start the cabinet" description="The cabinet container" icon="Play">
+
+```bash title="Start the container"
+cd /opt/remnashop/cabinet && docker compose up -d && docker compose logs -f -t
+```
+
+<Callout type="idea">
+Without `API_URL` or `CABINET_PROXY_SECRET`, or with a malformed secret or address, the container refuses to start and logs the reason.
+</Callout>
+
+</Section>
+
+<Section title="Step 6: Reverse proxy" description="Reach the cabinet by its domain" icon="ShieldCheck">
+
+Point the cabinet domain at the server (an A record, as for the Remnashop domain) and add it to your reverse proxy. Every request to the cabinet domain goes to the `remnashop-cabinet:80` container, which serves the cabinet and proxies requests to the Remnashop API.
+
+<Callout type="idea">
+The `remnashop-cabinet` name resolves only inside the Docker network. If your proxy doesn't run in Docker, use `127.0.0.1:5010`.
+</Callout>
+
+For Caddy, add a site block to the Caddyfile:
+
+```text title="Caddyfile"
+# WEB CABINET
+https://CABINET_DOMAIN {
+        encode
+        reverse_proxy http://remnashop-cabinet:80
+}
+```
+
+<Callout type="warn">
+Replace `CABINET_DOMAIN` with the cabinet domain, the value of `CABINET_DOMAIN` in the Remnashop `.env`.
+</Callout>
+
+For Nginx and Traefik, add a site modelled on the Remnashop one with a single route `/` → `remnashop-cabinet:80`; with Nginx, remember to issue a certificate for the cabinet domain.
+
+<Callout type="warn">
+If the cabinet domain is proxied through Cloudflare (orange cloud), follow the [Cloudflare](/docs/reverse-proxy/cloudflare) page, otherwise every cabinet client gets a Cloudflare address and they all share the rate limits.
+</Callout>
+
+<Method only="separate">
+
+<Callout type="idea">
+On a separate server the cabinet creates the `remnawave-network` Docker network itself, so the proxy configurations for the “Separate servers” method work unchanged.
+</Callout>
+
+</Method>
+
+<Cards>
+<Card title="Caddy" href="/docs/reverse-proxy/caddy">
+Installing and running Caddy
+</Card>
+<Card title="Nginx" href="/docs/reverse-proxy/nginx">
+Certificate and Nginx configuration
+</Card>
+<Card title="Traefik" href="/docs/reverse-proxy/traefik">
+Traefik routes
+</Card>
+</Cards>
+
+</Section>
+
+<Section title="Step 7: Sign-in methods" description="Telegram, Google, Yandex and email" icon="LogIn">
+
+Customer sign-in methods are enabled in the dashboard: “Settings” → “Cabinet sign-in”. Each method has a built-in guide; below are the addresses to register with the providers.
+
+| Method           | Where                                                         | Address                                                |
+| ---------------- | ------------------------------------------------------------- | ------------------------------------------------------ |
+| Telegram OAuth   | @BotFather → bot → Login Widget: Add a Redirect URI           | `https://cabinet.domain.com/login/callback/telegram`   |
+|                  | @BotFather → bot → Login Widget: Add a Trusted Origin         | `https://cabinet.domain.com`                           |
+| Google           | Google Cloud Console → Authorized redirect URIs               | `https://cabinet.domain.com/login/callback/google`     |
+| Yandex           | Yandex OAuth → Redirect URI                                   | `https://cabinet.domain.com/login/callback/yandex`     |
+
+<Callout type="idea">
+Sign-in through the Telegram bot needs no OAuth, only the bot token in “Settings” → “Telegram bot”. For sign-in with an email code, set up email in the same “Cabinet sign-in” section.
+</Callout>
+
+**Mini App.** To open the cabinet right inside Telegram, in @BotFather pick the bot → Mini Apps, enable the Main App and set `https://cabinet.domain.com`. The same address can go into the Menu Button so the cabinet also opens from the menu button in the bot chat. Inside Telegram the customer is signed in automatically.
+
+<Callout type="warn">
+Replace `cabinet.domain.com` with your cabinet domain.
+</Callout>
+
+</Section>
+
+<Section title="Check" description="The cabinet opens by its domain" icon="CircleCheck">
+
+Open `https://cabinet.domain.com` in a browser, the cabinet's sign-in page should appear. Sign in with any enabled method.
+
+Updating the cabinet is covered on the [Updating](/docs/getting-started/updating) page.
+
+</Section>

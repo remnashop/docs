@@ -30,6 +30,10 @@ Remnashop takes requests in two containers. Telegram webhooks go to the bot cont
 The `remnashop` and `remnashop-telegram` names resolve only inside the Docker network. If the proxy does not run in Docker, use `127.0.0.1:5000` and `127.0.0.1:5001`.
 </Callout>
 
+<Callout type="warn" title="Coming from 0.x?">
+In the old version every request went to `remnashop:5000`. Keep that route and add `/api/v1/telegram` → `remnashop-telegram:5001`, otherwise the bot gets no messages. In 0.7–0.8 port `5001` was the database — drop it from the old rules if it was there. The full move is described in [updating](/docs/getting-started/updating).
+</Callout>
+
 </Section>
 
 <Section title="Pick a proxy" description="Any of the three will do" icon="Route">
@@ -45,5 +49,9 @@ The `remnashop` and `remnashop-telegram` names resolve only inside the Docker ne
     Dynamic routing — handy if Traefik already runs on the server
   </Card>
 </Cards>
+
+<Callout type="warn">
+If your domains are proxied through Cloudflare (orange cloud), also follow the [Cloudflare](/docs/reverse-proxy/cloudflare) page, otherwise Remnashop sees Cloudflare's addresses instead of the clients'.
+</Callout>
 
 </Section>

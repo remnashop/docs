@@ -54,8 +54,7 @@ export function docsOptions(lang: string): BaseLayoutProps {
     ...base,
     nav: {
       ...base.nav,
-      // The dashboard sidebar's brand block: the mark, the name and a tagline under it.
-      title: (
+            title: (
         <span className="inline-flex items-center gap-2.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/logo.svg" alt="" className="size-8 shrink-0" />

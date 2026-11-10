@@ -8,8 +8,9 @@ import type { ComponentProps, ReactNode } from 'react';
 import type { MDXComponents } from 'mdx/types';
 import { sectionId } from '@/lib/section-toc';
 import { Method, MethodSwitch } from '@/components/install-method';
+import { GitHubIcon } from '@/components/icons/github';
+import { gitConfig } from '@/lib/shared';
 
-// The dashboard's tones: a tinted tile with the icon in a circle, like its attention rows.
 const calloutTones: Record<string, { tile: string; icon: string; Icon: LucideIcon }> = {
   info: { tile: 'border-fd-primary/25 bg-fd-primary/[0.05]', icon: 'bg-fd-primary/10 text-fd-primary', Icon: Info },
   idea: { tile: 'border-fd-primary/25 bg-fd-primary/[0.05]', icon: 'bg-fd-primary/10 text-fd-primary', Icon: Lightbulb },
@@ -34,7 +35,6 @@ function Callout({ type = 'info', title, children }: { type?: string; title?: Re
   );
 }
 
-// A yes/no mark for table cells, in the callouts' success and error tones.
 function Yes() {
   return <CircleCheck aria-label="✅" className="text-success inline size-4 align-[-3px]" />;
 }
@@ -43,8 +43,6 @@ function No() {
   return <CircleX aria-label="❌" className="text-error inline size-4 align-[-3px]" />;
 }
 
-// Link cards, drawn like the landing's feature tiles: the dashboard's KpiTile icon square
-// beside the title, the text under it, the tile brightening on hover like its plan cards.
 function Card({
   icon,
   title,
@@ -62,7 +60,7 @@ function Card({
     <>
       <span className="flex items-center gap-3">
         {icon ? (
-          <span className="bg-fd-primary/10 text-fd-primary flex size-10 shrink-0 items-center justify-center rounded-xl [&_svg]:size-5">
+          <span className="border-fd-border flex size-9 shrink-0 items-center justify-center rounded-full border bg-white/[0.05] [&_svg]:size-4">
             {icon}
           </span>
         ) : null}
@@ -72,7 +70,7 @@ function Card({
     </>
   );
   const className =
-    'flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-5 transition-colors hover:border-white/[0.16] hover:bg-white/[0.05]';
+    'glass-panel flex flex-col gap-3 rounded-3xl p-4 transition-[background] hover:bg-white/[0.06]';
 
   if (!href) return <div className={className}>{body}</div>;
   return external ? (
@@ -92,29 +90,47 @@ function Card({
 function Cards({ children }: { children?: ReactNode; className?: string }) {
   return (
     <div className="not-prose @container my-4">
-      <div className="grid gap-3 @md:grid-cols-2 @2xl:grid-cols-3 @md:[&>:last-child:nth-child(odd)]:col-span-2 @2xl:[&>:last-child:nth-child(odd)]:col-span-1">{children}</div>
+      <div className="grid gap-5 @md:grid-cols-2 @2xl:grid-cols-3 @md:[&>:last-child:nth-child(odd)]:col-span-2 @2xl:[&>:last-child:nth-child(odd)]:col-span-1">{children}</div>
     </div>
   );
 }
 
-// One version on the changelog: a dashboard tile around its heading and notes. `current`
-// marks the latest release in the accent, like the dashboard's highlighted KpiTile.
-function Release({ current = false, children }: { current?: boolean; children?: ReactNode }) {
+const changelogLabel: Record<string, string> = { ru: 'Полный список изменений', en: 'Full changelog' };
+
+// Without a tag the corner link goes to the list of releases.
+function Release({
+  current = false,
+  tag,
+  lang,
+  children,
+}: {
+  current?: boolean;
+  tag?: string;
+  lang: string;
+  children?: ReactNode;
+}) {
+  const href = `https://github.com/${gitConfig.user}/${gitConfig.repo}/releases${tag ? `/tag/${tag}` : ''}`;
   return (
     <section
-      className={`my-6 rounded-2xl border px-5 py-1 sm:px-6 [&>h2:first-child]:mt-5 ${
-        current
-          ? 'border-fd-primary/25 bg-fd-accent/60 [&>h2:first-child]:text-fd-primary'
-          : 'border-white/[0.08] bg-white/[0.03]'
+      className={`glass-panel relative my-5 rounded-3xl px-5 py-1 sm:px-6 [&>h2:first-child]:mt-5 [&>h2:first-child]:pr-12 sm:[&>h2:first-child]:pr-64 ${
+        current ? 'bg-fd-accent/60 [&>h2:first-child]:text-fd-primary' : ''
       }`}
     >
       {children}
+      {/* after the content, so the heading stays the card's first child */}
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer noopener"
+        className="not-prose border-fd-border text-fd-foreground/90 absolute top-5 right-5 flex h-9 items-center gap-1.5 rounded-full border bg-white/[0.03] px-2.5 text-[13px] font-medium transition-colors hover:bg-white/[0.06] sm:right-6 sm:px-3.5"
+      >
+        <GitHubIcon className="size-4" />
+        <span className="hidden sm:inline">{changelogLabel[lang] ?? changelogLabel.en}</span>
+      </a>
     </section>
   );
 }
 
-// A dashboard settings card: CardHeader (an icon in a glass circle, the title, a muted
-// description), a rule across the card, then the content.
 function Section({
   title,
   description,
@@ -128,31 +144,29 @@ function Section({
 }) {
   const Icon = icon ? lucideIcons[icon as keyof typeof lucideIcons] : undefined;
   return (
-    <div className="docs-card my-6 rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4">
-      <div className="not-prose flex items-center gap-2.5">
+    <div className="docs-card glass-panel my-5 rounded-3xl p-4">
+      <div className="not-prose flex items-center gap-3">
         {Icon ? (
-          <span className="border-fd-border flex size-8 shrink-0 items-center justify-center rounded-full border bg-white/[0.05]">
+          <span className="border-fd-border flex size-9 shrink-0 items-center justify-center rounded-full border bg-white/[0.05]">
             <Icon className="size-4" />
           </span>
         ) : null}
         <div className="min-w-0">
-          {/* A real heading, like the article's: it anchors the toc entry and brings the same
-              copy-link button on hover. */}
-          <Heading as="h2" id={sectionId(title)} className="scroll-mt-[calc(var(--fd-docs-row-3)+0.5rem)] text-sm leading-5 font-bold md:scroll-mt-10">
+          {/* a real heading: it anchors the toc entry and brings the copy-link button */}
+          <Heading as="h2" id={sectionId(title)} className="scroll-mt-[calc(var(--fd-docs-row-3)+0.5rem)] text-[15px] leading-5 font-semibold tracking-tight md:scroll-mt-10">
             {title}
           </Heading>
           {description ? (
-            <div className="text-fd-muted-foreground mt-0.5 text-[12.5px] leading-[18px]">{description}</div>
+            <div className="text-fd-muted-foreground mt-0.5 text-[12px] leading-4">{description}</div>
           ) : null}
         </div>
       </div>
-      <div className="-mx-4 mt-4 border-t border-white/[0.07]" />
+      <div className="-mx-4 mt-4 border-t border-white/[0.08]" />
       {children}
     </div>
   );
 }
 
-// With a title, the list sits in a Section, like the dashboard's OAuth settings card.
 function Accordions({
   title,
   description,
@@ -170,9 +184,8 @@ function Accordions({
   );
 }
 
-// The dashboard's OAuth provider rows put an icon in a circle before the name; `icon` names
-// a lucide icon for the same. Fumadocs keys an item by String(title), so the key is passed
-// from the plain title before the title becomes markup.
+// Fumadocs keys an item by String(title), so the key comes from the plain title before it
+// becomes markup.
 function Accordion({ title, icon, ...props }: ComponentProps<typeof BaseAccordion> & { icon?: string }) {
   const Icon = icon ? lucideIcons[icon as keyof typeof lucideIcons] : undefined;
   return (
@@ -199,13 +212,14 @@ function Tabs(props: ComponentProps<typeof BaseTabs>) {
   return <BaseTabs {...props} className="docs-tabs" />;
 }
 
-export function getMDXComponents(components?: MDXComponents) {
+// lang: the page's locale, for the labels a component writes itself
+export function getMDXComponents(components?: MDXComponents, lang = 'en') {
   return {
     ...defaultMdxComponents,
     Callout,
     Card,
     Cards,
-    Release,
+    Release: (props: Omit<ComponentProps<typeof Release>, 'lang'>) => <Release {...props} lang={lang} />,
     Section,
     Yes,
     No,
