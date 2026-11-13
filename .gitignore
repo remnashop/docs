@@ -13,7 +13,6 @@
 
 # local planning notes, not part of the site
 /docs
-/.superpowers
 
 # editors
 .idea
