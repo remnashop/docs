@@ -128,11 +128,11 @@ const userRows = (dates: string[], relative: string[]): UserRow[] => [
   { initials: 'ДЕ', name: 'Демьяша', id: 190, contacts: 'TG: 7392058146 · Email: demyasha@mail.ru', channels: ['telegram', 'email'], subscriptions: [{ tone: 'success', count: 1 }], date: dates[5], relative: relative[5] },
 ];
 
-// red flag signs up at 14:20 and buys at 14:28, Andrey buys at 14:11: the transactions page's
+// red flag buys at 14:28, Andrey buys at 14:11: the transactions page's
 // first rows. Purchases before 13:40 sit below the four transactions it shows.
 const eventRows = (labels: Record<EventRow['kind'], string>, times: string[]): EventRow[] => [
   { kind: 'purchase', event: labels.purchase, time: times[0], actor: 'red flag', actorId: 412, ip: '—' },
-  { kind: 'register', event: labels.register, time: times[1], actor: 'red flag', actorId: 412, ip: '—' },
+  { kind: 'register', event: labels.register, time: times[1], actor: 'Evgeniy Finskiy', actorId: 255, ip: '—' },
   { kind: 'promocode', event: labels.promocode, time: times[2], actor: 'Дмитрий Титов', actorId: 214, ip: '—' },
   { kind: 'purchase', event: labels.purchase, time: times[3], actor: 'Andrey', actorId: 301, ip: '—' },
   { kind: 'login', event: labels.login, time: times[4], actor: 'snoups', actorId: 1, ip: '127.0.0.1' },
