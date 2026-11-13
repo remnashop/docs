@@ -123,7 +123,7 @@ const userRows = (dates: string[], relative: string[]): UserRow[] => [
   { initials: 'RF', name: 'red flag', id: 412, contacts: 'TG: 6815203947', channels: ['telegram'], subscriptions: [{ tone: 'success', count: 1 }], date: dates[0], relative: relative[0] },
   { initials: 'ME', name: 'My event Horizon', id: 398, contacts: 'TG: 5294718360', channels: ['telegram'], subscriptions: [{ tone: 'success', count: 2 }], date: dates[1], relative: relative[1] },
   { initials: 'DI', name: 'DIZZABLE', id: 377, contacts: 'TG: 1048276593', channels: ['telegram', 'login'], subscriptions: [{ tone: 'warning', count: 1 }], date: dates[2], relative: relative[2] },
-  { initials: 'AN', name: 'Andrey', id: 301, contacts: 'TG: 843915627', channels: ['telegram'], subscriptions: [{ tone: 'success', count: 1 }], date: dates[3], relative: relative[3] },
+  { initials: 'OC', name: 'Oleg Ch.', id: 365, contacts: 'TG: 6027415839', channels: ['telegram'], subscriptions: [{ tone: 'success', count: 1 }], date: dates[3], relative: relative[3] },
   { initials: 'FI', name: 'Finskiy', id: 255, contacts: '—', channels: ['email'], subscriptions: [{ tone: 'error', count: 1 }], date: dates[4], relative: relative[4] },
   { initials: 'ДЕ', name: 'Демьяша', id: 190, contacts: 'TG: 7392058146 · Email: demyasha@mail.ru', channels: ['telegram', 'email'], subscriptions: [{ tone: 'success', count: 1 }], date: dates[5], relative: relative[5] },
 ];
