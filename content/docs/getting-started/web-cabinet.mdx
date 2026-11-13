@@ -39,76 +39,58 @@ mkdir -p /opt/remnashop/cabinet && cd /opt/remnashop/cabinet
 
 </Section>
 
-<Section title="Step 2: Shared secret" description="Key between the cabinet and Remnashop" icon="KeyRound">
+<Section title="Step 2: Download the required files" description="docker-compose.yml and .env" icon="Download">
 
-The cabinet passes the customer's IP address to Remnashop and vouches for it with a secret. Remnashop trusts that address only when the secret matches its own.
+<Method only="same">
 
-```bash title="Generate the secret"
-echo "CABINET_PROXY_SECRET=$(openssl rand -hex 32)" > .env && cat .env
+```bash title="Get docker-compose.yml (cabinet and Remnashop on the same server)"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/docker-compose.prod.internal.yml
 ```
 
-Copy the printed value, you will need it in step 4.
+</Method>
 
-<Callout type="idea">
-The secret may contain only Latin letters, digits, `_` and `-`. Use at least 32 characters — `openssl rand -hex 32` gives a suitable value.
+<Method only="separate">
+
+```bash title="Get docker-compose.yml (cabinet and Remnashop on separate servers)"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/docker-compose.prod.external.yml
+```
+
+</Method>
+
+```bash title="Get .env"
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/.env.example && chmod 600 .env
+```
+
+<Callout type="error">
+Don't change the `127.0.0.1:5010` port binding in `docker-compose.yml`. The cabinet trusts the `X-Forwarded-For` header from the reverse proxy; exposed directly to the internet, it would let a client claim any IP.
 </Callout>
 
 </Section>
 
-<Section title="Step 3: docker-compose.yml" description="The cabinet container" icon="FileCode">
+<Section title="Step 3: Configure .env" description="Shared secret and API address" icon="KeyRound">
 
-```bash title="Create docker-compose.yml"
-nano docker-compose.yml
+The cabinet passes the customer's IP address to Remnashop and vouches for it with a secret. Remnashop trusts that address only when the secret matches its own.
+
+```bash title="Generate the secret"
+sed -i "s|^CABINET_PROXY_SECRET=change_me$|CABINET_PROXY_SECRET=$(openssl rand -hex 32)|" .env && grep ^CABINET_PROXY_SECRET= .env
 ```
+
+Copy the printed value, you will need it in step 4.
 
 <Method only="same">
 
-```yaml title="docker-compose.yml"
-services:
-  remnashop-cabinet:
-    image: ghcr.io/remnashop/remnashop-cabinet:latest
-    container_name: remnashop-cabinet
-    restart: unless-stopped
-    environment:
-      API_URL: http://remnashop:5000
-      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
-    ports:
-      - 127.0.0.1:5010:80
-    networks:
-      - remnawave-network
-
-networks:
-  remnawave-network:
-    name: remnawave-network
-    external: true
-```
-
 <Callout type="idea">
-`API_URL: http://remnashop:5000` is the Remnashop container name on the `remnawave-network` Docker network. Start Remnashop before the cabinet, otherwise the network doesn't exist yet and the container won't start.
+Leave `API_URL` as is: `http://remnashop:5000` is the Remnashop container name on the `remnawave-network` Docker network. Start Remnashop before the cabinet, otherwise the network doesn't exist yet and the container won't start.
 </Callout>
 
 </Method>
 
 <Method only="separate">
 
-```yaml title="docker-compose.yml"
-services:
-  remnashop-cabinet:
-    image: ghcr.io/remnashop/remnashop-cabinet:latest
-    container_name: remnashop-cabinet
-    restart: unless-stopped
-    environment:
-      API_URL: https://SHOP_DOMAIN
-      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
-    ports:
-      - 127.0.0.1:5010:80
-    networks:
-      - remnawave-network
+Set the Remnashop API address:
 
-networks:
-  remnawave-network:
-    name: remnawave-network
-    external: false
+```bash title="API address"
+sed -i "s|^API_URL=.*|API_URL=https://SHOP_DOMAIN|" .env
 ```
 
 <Callout type="warn">
@@ -116,10 +98,6 @@ Replace `SHOP_DOMAIN` with the Remnashop domain, the value of `APP_DOMAIN`. Use 
 </Callout>
 
 </Method>
-
-<Callout type="error">
-Publish the port on `127.0.0.1` only, as in the example. The cabinet trusts the `X-Forwarded-For` header from the reverse proxy; exposed directly to the internet, it would let a client claim any IP.
-</Callout>
 
 </Section>
 
@@ -141,7 +119,7 @@ cd /opt/remnashop && nano .env
 # Web cabinet domain WITHOUT HTTP/HTTPS and WITHOUT a trailing slash.
 CABINET_DOMAIN=cabinet.domain.com
 
-# The same value as CABINET_PROXY_SECRET in the cabinet's .env (step 2).
+# The same value as CABINET_PROXY_SECRET in the cabinet's .env (step 3).
 CABINET_PROXY_SECRET=change_me
 ```
 

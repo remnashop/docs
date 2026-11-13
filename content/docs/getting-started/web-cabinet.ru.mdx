@@ -39,76 +39,58 @@ mkdir -p /opt/remnashop/cabinet && cd /opt/remnashop/cabinet
 
 </Section>
 
-<Section title="Шаг 2: Общий секрет" description="Ключ между кабинетом и Remnashop" icon="KeyRound">
+<Section title="Шаг 2: Загрузка необходимых файлов" description="docker-compose.yml и .env" icon="Download">
 
-Кабинет передаёт Remnashop IP-адрес клиента и подтверждает его секретом. Remnashop доверяет этому адресу, только если секрет совпадает с его собственным.
+<Method only="same">
 
-```bash title="Генерация секрета"
-echo "CABINET_PROXY_SECRET=$(openssl rand -hex 32)" > .env && cat .env
+```bash title="Получение файла docker-compose.yml (кабинет и Remnashop на одном сервере)"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/docker-compose.prod.internal.yml
 ```
 
-Скопируйте выведенное значение — оно понадобится на шаге 4.
+</Method>
 
-<Callout type="idea">
-В секрете допустимы только латинские буквы, цифры, `_` и `-`. Используйте не меньше 32 символов — `openssl rand -hex 32` даёт подходящее значение.
+<Method only="separate">
+
+```bash title="Получение файла docker-compose.yml (кабинет и Remnashop на разных серверах)"
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/docker-compose.prod.external.yml
+```
+
+</Method>
+
+```bash title="Получение файла .env"
+curl -o .env https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/.env.example && chmod 600 .env
+```
+
+<Callout type="error">
+Не меняйте в `docker-compose.yml` публикацию порта `127.0.0.1:5010`. Кабинет доверяет заголовку `X-Forwarded-For` от обратного прокси; открытый напрямую в интернет, он позволил бы клиенту подставить любой IP.
 </Callout>
 
 </Section>
 
-<Section title="Шаг 3: Файл docker-compose.yml" description="Контейнер кабинета" icon="FileCode">
+<Section title="Шаг 3: Настройка .env" description="Общий секрет и адрес API" icon="KeyRound">
 
-```bash title="Создание docker-compose.yml"
-nano docker-compose.yml
+Кабинет передаёт Remnashop IP-адрес клиента и подтверждает его секретом. Remnashop доверяет этому адресу, только если секрет совпадает с его собственным.
+
+```bash title="Генерация секрета"
+sed -i "s|^CABINET_PROXY_SECRET=change_me$|CABINET_PROXY_SECRET=$(openssl rand -hex 32)|" .env && grep ^CABINET_PROXY_SECRET= .env
 ```
+
+Скопируйте выведенное значение — оно понадобится на шаге 4.
 
 <Method only="same">
 
-```yaml title="docker-compose.yml"
-services:
-  remnashop-cabinet:
-    image: ghcr.io/remnashop/remnashop-cabinet:latest
-    container_name: remnashop-cabinet
-    restart: unless-stopped
-    environment:
-      API_URL: http://remnashop:5000
-      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
-    ports:
-      - 127.0.0.1:5010:80
-    networks:
-      - remnawave-network
-
-networks:
-  remnawave-network:
-    name: remnawave-network
-    external: true
-```
-
 <Callout type="idea">
-`API_URL: http://remnashop:5000` — имя контейнера Remnashop в Docker-сети `remnawave-network`. Remnashop должен быть запущен раньше кабинета, иначе сети ещё нет и контейнер не запустится.
+`API_URL` менять не нужно: `http://remnashop:5000` — имя контейнера Remnashop в Docker-сети `remnawave-network`. Remnashop должен быть запущен раньше кабинета, иначе сети ещё нет и контейнер не запустится.
 </Callout>
 
 </Method>
 
 <Method only="separate">
 
-```yaml title="docker-compose.yml"
-services:
-  remnashop-cabinet:
-    image: ghcr.io/remnashop/remnashop-cabinet:latest
-    container_name: remnashop-cabinet
-    restart: unless-stopped
-    environment:
-      API_URL: https://SHOP_DOMAIN
-      CABINET_PROXY_SECRET: ${CABINET_PROXY_SECRET}
-    ports:
-      - 127.0.0.1:5010:80
-    networks:
-      - remnawave-network
+Укажите адрес API Remnashop:
 
-networks:
-  remnawave-network:
-    name: remnawave-network
-    external: false
+```bash title="Адрес API"
+sed -i "s|^API_URL=.*|API_URL=https://SHOP_DOMAIN|" .env
 ```
 
 <Callout type="warn">
@@ -116,10 +98,6 @@ networks:
 </Callout>
 
 </Method>
-
-<Callout type="error">
-Публикуйте порт только на `127.0.0.1`, как в примере. Кабинет доверяет заголовку `X-Forwarded-For` от обратного прокси; открытый напрямую в интернет, он позволил бы клиенту подставить любой IP.
-</Callout>
 
 </Section>
 
@@ -141,7 +119,7 @@ cd /opt/remnashop && nano .env
 # Домен веб-кабинета БЕЗ HTTP/HTTPS и БЕЗ завершающего слеша.
 CABINET_DOMAIN=cabinet.domain.com
 
-# То же значение, что CABINET_PROXY_SECRET в .env кабинета (шаг 2).
+# То же значение, что CABINET_PROXY_SECRET в .env кабинета (шаг 3).
 CABINET_PROXY_SECRET=change_me
 ```
 
