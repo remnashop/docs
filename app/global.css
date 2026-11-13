@@ -190,6 +190,14 @@ html[lang='en'] #nd-nav [data-search-full] ~ button::after {
   transition: color 150ms;
 }
 
+/* GitHub carries the star count beside the icon */
+#nd-nav a[aria-label='GitHub'] {
+  display: inline-flex;
+  gap: 0.375rem;
+  width: auto;
+  padding-inline: 0.5rem;
+}
+
 #nd-nav a[aria-label]:hover {
   background-color: transparent;
   color: var(--color-fd-foreground);
