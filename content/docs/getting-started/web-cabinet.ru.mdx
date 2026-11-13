@@ -191,7 +191,54 @@ https://CABINET_DOMAIN {
 Замените `CABINET_DOMAIN` на домен кабинета — значение `CABINET_DOMAIN` из `.env` Remnashop.
 </Callout>
 
-Для Nginx и Traefik добавьте сайт по образцу сайта Remnashop с единственным маршрутом `/` → `remnashop-cabinet:80`; в Nginx не забудьте выпустить сертификат для домена кабинета.
+Для Nginx выпустите сертификат для домена кабинета той же командой, что и для домена Remnashop на странице [Nginx](/ru/docs/reverse-proxy/nginx), заменив `SHOP_DOMAIN` на `CABINET_DOMAIN`, а `shopdomain_` в именах файлов — на `cabinetdomain_`. Подключите оба файла в `docker-compose.yml` Nginx так же, как файлы домена Remnashop, и добавьте в `nginx.conf`:
+
+```nginx title="nginx.conf"
+upstream remnashop-cabinet {
+    server remnashop-cabinet:80;
+}
+
+server {
+    server_name CABINET_DOMAIN;
+
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+
+    location / {
+        proxy_pass http://remnashop-cabinet;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_certificate "/etc/nginx/ssl/cabinetdomain_fullchain.pem";
+    ssl_certificate_key "/etc/nginx/ssl/cabinetdomain_privkey.key";
+}
+```
+
+Для Traefik создайте файл `remnashop-cabinet.yml` в папке `config` рядом с `remnashop.yml` — Traefik подхватит его сам и выпустит сертификат:
+
+```yaml title="remnashop-cabinet.yml"
+http:
+  routers:
+    remnashop-cabinet:
+      rule: "Host(`CABINET_DOMAIN`)"
+      entrypoints:
+        - https
+      tls:
+        certResolver: letsencrypt
+      service: remnashop-cabinet
+
+  services:
+    remnashop-cabinet:
+      loadBalancer:
+        servers:
+          - url: "http://remnashop-cabinet:80"
+```
 
 <Callout type="warn">
 Если домен кабинета проксируется через Cloudflare (жёлтое облако), выполните настройку со страницы [Cloudflare](/ru/docs/reverse-proxy/cloudflare), иначе все клиенты кабинета получат адреса Cloudflare и будут делить между собой лимиты запросов.
@@ -221,7 +268,7 @@ https://CABINET_DOMAIN {
 
 <Section title="Шаг 7: Способы входа" description="Telegram, Google, Яндекс и email" icon="LogIn">
 
-Способы входа клиентов включаются в панели управления: «Настройки» → «Вход в кабинет». У каждого способа есть встроенная инструкция; ниже — адреса, которые нужно указать у провайдеров.
+Способы входа клиентов включаются в панели управления: «Настройки» → «Веб-кабинет», карточка «Вход в кабинет». У каждого способа есть встроенная инструкция; ниже — адреса, которые нужно указать у провайдеров.
 
 | Способ           | Где указать                                                       | Адрес                                                  |
 | ---------------- | ----------------------------------------------------------------- | ------------------------------------------------------ |
@@ -231,7 +278,7 @@ https://CABINET_DOMAIN {
 | Яндекс           | Яндекс OAuth → Redirect URI                                       | `https://cabinet.domain.com/login/callback/yandex`     |
 
 <Callout type="idea">
-Вход через Telegram-бота работает без OAuth: нужен только токен бота в «Настройки» → «Telegram-бот». Для входа по коду из письма настройте почту в том же разделе «Вход в кабинет».
+Вход через Telegram-бота работает без OAuth: нужен только токен бота в «Настройки» → «Telegram-бот». Для входа по коду из письма настройте почту на той же вкладке, в карточке «Почтовый сервер».
 </Callout>
 
 **Mini App.** Чтобы кабинет открывался прямо в Telegram, в @BotFather выберите бота → Mini Apps, включите Main App и укажите `https://cabinet.domain.com`. Этот же адрес можно поставить в Menu Button — тогда кабинет откроется кнопкой меню в чате с ботом. Внутри Telegram клиент входит автоматически.

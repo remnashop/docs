@@ -191,7 +191,54 @@ https://CABINET_DOMAIN {
 Replace `CABINET_DOMAIN` with the cabinet domain, the value of `CABINET_DOMAIN` in the Remnashop `.env`.
 </Callout>
 
-For Nginx and Traefik, add a site modelled on the Remnashop one with a single route `/` → `remnashop-cabinet:80`; with Nginx, remember to issue a certificate for the cabinet domain.
+For Nginx, issue a certificate for the cabinet domain with the same command as for the Remnashop domain on the [Nginx](/docs/reverse-proxy/nginx) page, replacing `SHOP_DOMAIN` with `CABINET_DOMAIN` and `shopdomain_` in the file names with `cabinetdomain_`. Mount both files in the Nginx `docker-compose.yml` the same way as the Remnashop domain's files, and add to `nginx.conf`:
+
+```nginx title="nginx.conf"
+upstream remnashop-cabinet {
+    server remnashop-cabinet:80;
+}
+
+server {
+    server_name CABINET_DOMAIN;
+
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+
+    location / {
+        proxy_pass http://remnashop-cabinet;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_certificate "/etc/nginx/ssl/cabinetdomain_fullchain.pem";
+    ssl_certificate_key "/etc/nginx/ssl/cabinetdomain_privkey.key";
+}
+```
+
+For Traefik, create `remnashop-cabinet.yml` in the `config` folder next to `remnashop.yml`; Traefik picks it up and issues the certificate itself:
+
+```yaml title="remnashop-cabinet.yml"
+http:
+  routers:
+    remnashop-cabinet:
+      rule: "Host(`CABINET_DOMAIN`)"
+      entrypoints:
+        - https
+      tls:
+        certResolver: letsencrypt
+      service: remnashop-cabinet
+
+  services:
+    remnashop-cabinet:
+      loadBalancer:
+        servers:
+          - url: "http://remnashop-cabinet:80"
+```
 
 <Callout type="warn">
 If the cabinet domain is proxied through Cloudflare (orange cloud), follow the [Cloudflare](/docs/reverse-proxy/cloudflare) page, otherwise every cabinet client gets a Cloudflare address and they all share the rate limits.
@@ -221,7 +268,7 @@ Traefik routes
 
 <Section title="Step 7: Sign-in methods" description="Telegram, Google, Yandex and email" icon="LogIn">
 
-Customer sign-in methods are enabled in the dashboard: “Settings” → “Cabinet sign-in”. Each method has a built-in guide; below are the addresses to register with the providers.
+Customer sign-in methods are enabled in the dashboard: “Settings” → “Web cabinet”, the “Cabinet sign-in” card. Each method has a built-in guide; below are the addresses to register with the providers.
 
 | Method           | Where                                                         | Address                                                |
 | ---------------- | ------------------------------------------------------------- | ------------------------------------------------------ |
@@ -231,7 +278,7 @@ Customer sign-in methods are enabled in the dashboard: “Settings” → “Cab
 | Yandex           | Yandex OAuth → Redirect URI                                   | `https://cabinet.domain.com/login/callback/yandex`     |
 
 <Callout type="idea">
-Sign-in through the Telegram bot needs no OAuth, only the bot token in “Settings” → “Telegram bot”. For sign-in with an email code, set up email in the same “Cabinet sign-in” section.
+Sign-in through the Telegram bot needs no OAuth, only the bot token in “Settings” → “Telegram bot”. For sign-in with an email code, set up email on the same tab, in the “Mail server” card.
 </Callout>
 
 **Mini App.** To open the cabinet right inside Telegram, in @BotFather pick the bot → Mini Apps, enable the Main App and set `https://cabinet.domain.com`. The same address can go into the Menu Button so the cabinet also opens from the menu button in the bot chat. Inside Telegram the customer is signed in automatically.
