@@ -44,7 +44,7 @@ mkdir -p /opt/remnashop/cabinet && cd /opt/remnashop/cabinet
 <Method only="same">
 
 ```bash title="Get docker-compose.yml (cabinet and Remnashop on the same server)"
-curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/docker-compose.prod.internal.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/cabinet/refs/heads/main/docker-compose.prod.internal.yml
 ```
 
 </Method>
@@ -52,13 +52,13 @@ curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop
 <Method only="separate">
 
 ```bash title="Get docker-compose.yml (cabinet and Remnashop on separate servers)"
-curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/docker-compose.prod.external.yml
+curl -o docker-compose.yml https://raw.githubusercontent.com/remnashop/cabinet/refs/heads/main/docker-compose.prod.external.yml
 ```
 
 </Method>
 
 ```bash title="Get .env"
-curl -o .env https://raw.githubusercontent.com/remnashop/remnashop-cabinet/refs/heads/main/.env.example && chmod 600 .env
+curl -o .env https://raw.githubusercontent.com/remnashop/cabinet/refs/heads/main/.env.example && chmod 600 .env
 ```
 
 <Callout type="error">
